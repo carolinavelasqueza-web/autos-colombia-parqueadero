@@ -2,12 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict J4VEFfgxYo6r52t2UAlTDxY88BBmqDbSkYfFwmtYBRXAlzVMulbEjaTWWFk4U77
+\restrict jw7cjSkriDHUSd6tfDXk0rhIiuxgfwcBuueRQ34QuWuUebuAijO2qBNvxWHe8VT
 
 -- Dumped from database version 18.6
 -- Dumped by pg_dump version 18.6
 
--- Started on 2026-11-03 15:06:35
+-- Started on 2026-11-14 10:59:34
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -463,6 +463,16 @@ COPY public.auditoria (id, operador_id, accion, entidad, entidad_id, fecha, deta
 563	2	LOGOUT	sesion	6	2026-11-03 14:49:23.664284-05	{"rol": "ADMINISTRADOR"}
 565	39	ACTUALIZAR	cliente	266	2026-11-03 14:50:40.538011-05	{"campos": ["activo"], "nuevos": {"activo": false}, "anteriores": {"activo": true}}
 567	39	LOGOUT	sesion	7	2026-11-03 14:51:00.998601-05	{"rol": "OPERADOR"}
+568	2	LOGIN	sesion	8	2026-11-03 15:44:49.83094-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-03T21:44:50.086230+00:00"}
+570	2	LOGOUT	sesion	9	2026-11-04 10:33:32.389583-05	{"rol": "ADMINISTRADOR"}
+571	2	LOGIN	sesion	10	2026-11-04 11:27:27.020057-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-04T17:27:27.275367+00:00"}
+574	39	LOGIN	sesion	12	2026-11-04 14:51:34.091445-05	{"rol": "OPERADOR", "expira_en": "2026-11-04T20:51:34.330481+00:00"}
+575	39	LOGIN	sesion	13	2026-11-04 15:52:22.107993-05	{"rol": "OPERADOR", "expira_en": "2026-11-04T21:52:22.364288+00:00"}
+576	2	LOGIN	sesion	14	2026-11-05 10:26:08.102682-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-05T16:26:08.368974+00:00"}
+579	39	LOGIN	sesion	15	2026-11-10 16:10:31.811957-05	{"rol": "OPERADOR", "expira_en": "2026-11-10T22:10:32.078756+00:00"}
+580	39	LOGOUT	sesion	15	2026-11-10 16:11:09.060034-05	{"rol": "OPERADOR"}
+582	2	LOGIN	sesion	17	2026-11-11 10:36:34.905357-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-11T16:36:35.198768+00:00"}
+602	2	LOGOUT	sesion	26	2026-11-13 20:40:52.427824-05	{"rol": "ADMINISTRADOR"}
 151	2	DESACTIVAR	celda	1	2026-10-30 14:37:11.89477-05	{"motivo": "con_estancias", "activo_nuevo": false, "activo_anterior": true}
 152	39	LOGIN	sesion	39	2026-10-30 14:39:07.184251-05	{"rol": "OPERADOR"}
 153	39	CREAR	vehiculo	86	2026-10-30 14:39:39.544058-05	{"tipo": "AUTOMOVIL", "placa": "M165"}
@@ -489,6 +499,36 @@ COPY public.auditoria (id, operador_id, accion, entidad, entidad_id, fecha, deta
 562	2	ENTRADA	estancia	210	2026-11-03 14:43:05.253097-05	{"placa": "M167", "celda_id": 189, "ficho_codigo": "AC-20261103-0004", "puerta_entrada_id": 1}
 564	39	LOGIN	sesion	7	2026-11-03 14:49:55.754222-05	{"rol": "OPERADOR", "expira_en": "2026-11-03T20:49:55.997087+00:00"}
 566	39	ACTUALIZAR	cliente	266	2026-11-03 14:50:49.078616-05	{"campos": ["activo"], "nuevos": {"activo": true}, "anteriores": {"activo": false}}
+569	2	LOGIN	sesion	9	2026-11-04 10:33:29.025268-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-04T16:33:29.286715+00:00"}
+572	2	LOGIN	sesion	11	2026-11-04 13:54:17.179801-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-04T19:54:17.441424+00:00"}
+573	2	LOGOUT	sesion	11	2026-11-04 14:51:23.628249-05	{"rol": "ADMINISTRADOR"}
+577	2	CREAR	vehiculo	421	2026-11-05 10:27:35.725448-05	{"nuevos": {"tipo": "AUTOMOVIL", "color": "negro y blanco", "marca": "Mazda", "placa": "M168", "modelo": 2024, "cliente_id": 266}}
+578	2	ENTRADA	estancia	211	2026-11-05 10:27:53.804295-05	{"placa": "M168", "celda_id": 191, "ficho_codigo": "AC-20261105-0001", "puerta_entrada_id": 1}
+581	2	LOGIN	sesion	16	2026-11-10 16:11:17.682422-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-10T22:11:17.927570+00:00"}
+583	2	LOGIN	sesion	18	2026-11-11 14:03:41.583477-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-11T20:03:41.853293+00:00"}
+584	2	CREAR	vehiculo	422	2026-11-11 14:31:40.512632-05	{"nuevos": {"tipo": "MOTO", "color": "Blanco", "marca": "Best", "placa": "M169", "modelo": 2026, "cliente_id": 266}}
+585	2	ENTRADA	estancia	212	2026-11-11 14:31:51.272128-05	{"placa": "M169", "celda_id": 194, "ficho_codigo": "AC-20261111-0001", "puerta_entrada_id": 1}
+586	2	SALIDA	estancia	208	2026-11-11 14:47:44.948064-05	{"placa": "M165", "celda_id": 197, "ficho_codigo": "AC-20261103-0002", "puerta_salida_id": 1}
+587	2	LOGOUT	sesion	18	2026-11-11 14:56:29.653875-05	{"rol": "ADMINISTRADOR"}
+588	39	LOGIN	sesion	19	2026-11-11 14:56:46.888564-05	{"rol": "OPERADOR", "expira_en": "2026-11-11T20:56:47.132888+00:00"}
+589	39	LOGOUT	sesion	19	2026-11-11 15:06:36.857836-05	{"rol": "OPERADOR"}
+590	2	LOGIN	sesion	20	2026-11-11 15:06:43.891725-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-11T21:06:44.167178+00:00"}
+591	2	LOGIN	sesion	21	2026-11-11 16:07:28.522404-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-11T22:07:28.781279+00:00"}
+592	2	ENTRADA	estancia	213	2026-11-11 16:09:27.838222-05	{"placa": "M165", "celda_id": 195, "ficho_codigo": "AC-20261111-0002", "puerta_entrada_id": 1}
+593	2	LOGOUT	sesion	21	2026-11-11 16:09:47.188571-05	{"rol": "ADMINISTRADOR"}
+594	39	LOGIN	sesion	22	2026-11-11 16:09:56.979231-05	{"rol": "OPERADOR", "expira_en": "2026-11-11T22:09:57.230909+00:00"}
+595	39	LOGOUT	sesion	22	2026-11-11 16:34:33.175146-05	{"rol": "OPERADOR"}
+596	2	LOGIN	sesion	23	2026-11-11 16:34:40.120219-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-11T22:34:40.368225+00:00"}
+597	2	LOGIN	sesion	24	2026-11-12 09:52:16.230923-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-12T15:52:16.474316+00:00"}
+598	2	LOGIN	sesion	25	2026-11-13 20:08:46.415249-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-14T02:08:46.857839+00:00"}
+599	2	LOGOUT	sesion	25	2026-11-13 20:36:47.9939-05	{"rol": "ADMINISTRADOR"}
+600	2	LOGIN	sesion	26	2026-11-13 20:36:59.799732-05	{"rol": "ADMINISTRADOR", "expira_en": "2026-11-14T02:37:00.218954+00:00"}
+601	2	SALIDA	estancia	213	2026-11-13 20:39:07.951986-05	{"placa": "M165", "celda_id": 195, "ficho_codigo": "AC-20261111-0002", "puerta_salida_id": 1}
+603	39	LOGIN	sesion	27	2026-11-13 20:41:08.696027-05	{"rol": "OPERADOR", "expira_en": "2026-11-14T02:41:09.171821+00:00"}
+604	39	ACTUALIZAR	cliente	266	2026-11-13 20:41:33.944172-05	{"campos": ["activo"], "nuevos": {"activo": false}, "anteriores": {"activo": true}}
+605	39	ACTUALIZAR	cliente	266	2026-11-13 20:41:38.464779-05	{"campos": ["activo"], "nuevos": {"activo": true}, "anteriores": {"activo": false}}
+606	39	ACTUALIZAR	cliente	221	2026-11-13 20:41:59.914545-05	{"campos": ["telefono"], "nuevos": {"telefono": "3206897320"}, "anteriores": {"telefono": "3206897319"}}
+607	39	LOGIN	sesion	28	2026-11-14 10:37:33.884545-05	{"rol": "OPERADOR", "expira_en": "2026-11-14T16:37:34.158602+00:00"}
 \.
 
 
@@ -590,8 +630,8 @@ COPY public.celda (id, codigo, tipo, activo) FROM stdin;
 --
 
 COPY public.cliente (id, documento, nombre, telefono, correo, activo) FROM stdin;
-221	1028031780	carolina velasquez avilaaa	3206897319	caro@gmail.com	t
 266	1111111111	pepito	3120000000	operador@gmail.com	t
+221	1028031780	carolina velasquez avilaaa	3206897320	caro@gmail.com	t
 \.
 
 
@@ -603,9 +643,12 @@ COPY public.cliente (id, documento, nombre, telefono, correo, activo) FROM stdin
 
 COPY public.estancia (id, vehiculo_id, celda_id, entrada, salida, operador_entrada_id, operador_salida_id, ficho_codigo, ficho_usado_en, puerta_entrada_id, puerta_salida_id) FROM stdin;
 1	1	1	2026-10-23 08:55:31.60898-05	\N	1	\N	\N	\N	\N	\N
-208	371	197	2026-11-03 12:02:37.991588-05	\N	39	\N	AC-20261103-0002	\N	1	\N
 209	420	184	2026-11-03 14:40:20.791509-05	2026-11-03 14:41:01.206486-05	2	2	AC-20261103-0003	2026-11-03 14:41:01.206486-05	2	2
 210	420	189	2026-11-03 14:43:05.270914-05	\N	2	\N	AC-20261103-0004	\N	1	\N
+211	421	191	2026-11-05 10:27:53.832286-05	\N	2	\N	AC-20261105-0001	\N	1	\N
+212	422	194	2026-11-11 14:31:51.305221-05	\N	2	\N	AC-20261111-0001	\N	1	\N
+208	371	197	2026-11-03 12:02:37.991588-05	2026-11-11 14:47:44.95766-05	39	2	AC-20261103-0002	2026-11-11 14:47:44.95766-05	1	1
+213	371	195	2026-11-11 16:09:27.8602-05	2026-11-13 20:39:07.973774-05	2	2	AC-20261111-0002	2026-11-13 20:39:07.973774-05	1	1
 81	86	125	2026-10-30 15:15:28.337457-05	\N	2	\N	\N	\N	\N	\N
 186	371	199	2026-11-03 11:23:07.159218-05	2026-11-03 11:27:05.183246-05	2	39	AC-20261103-0001	2026-11-03 11:27:05.183246-05	1	2
 54	86	202	2026-10-30 14:40:01.483591-05	2026-10-30 15:14:33.125001-05	39	2	\N	\N	\N	\N
@@ -672,6 +715,27 @@ COPY public.sesion (id, operador_id, token_hash, creada_en, expira_en, revocada_
 5	39	51b0748c343ecadc4e59cd1d58b3bab46a78dd7ae1eb7265687610092020c91d	2026-11-03 13:56:15.706543-05	2026-11-03 14:56:16.059595-05	2026-11-03 14:28:32.469333-05
 6	2	e0cbd75ca0281428f2a43e9bfe71e16d954995758b1609a2540b00a889ef7630	2026-11-03 14:39:38.402077-05	2026-11-03 15:39:38.658539-05	2026-11-03 14:49:23.67427-05
 7	39	0ab151547d98c48ac1eb2d8341bc1ab9226633e8b21509aaf0239fe5a596a9f6	2026-11-03 14:49:55.754222-05	2026-11-03 15:49:55.997087-05	2026-11-03 14:51:01.003188-05
+8	2	db19edf631df1997ef61f5d58b7149a6715179a93e634f81d2b038df4a357c04	2026-11-03 15:44:49.83094-05	2026-11-03 16:44:50.08623-05	\N
+9	2	548566dd11a4c1dadf4e04d25c5f8a2367186d8145647bbe2ae739de12db4bd6	2026-11-04 10:33:29.025268-05	2026-11-04 11:33:29.286715-05	2026-11-04 10:33:32.393644-05
+10	2	986e76c2820da5b0f0bfa076b0e27e634acad674c0d40f15b2edaf866fbb3e85	2026-11-04 11:27:27.020057-05	2026-11-04 12:27:27.275367-05	\N
+11	2	d9d70f6fbfe473371658023cb3c5793e9098b426028bdb8b418b210b64046d46	2026-11-04 13:54:17.179801-05	2026-11-04 14:54:17.441424-05	2026-11-04 14:51:23.63625-05
+12	39	b54e9a21e1895cceb5b86a4d4dafa92d4a89da4c73d39457840431a712569a01	2026-11-04 14:51:34.091445-05	2026-11-04 15:51:34.330481-05	\N
+13	39	d3708ae400e617a8156d6f61e74fef24c30b05e8ee58740bdf0891db9dfeb579	2026-11-04 15:52:22.107993-05	2026-11-04 16:52:22.364288-05	\N
+14	2	60fa50edeb1aef54426c905ff47a3e4d97f0e410110460232ac084d16633d717	2026-11-05 10:26:08.102682-05	2026-11-05 11:26:08.368974-05	\N
+15	39	d97a37ff8c05dfd276380db99ee6da032e623b371ddc4beb7c585346051d8e63	2026-11-10 16:10:31.811957-05	2026-11-10 17:10:32.078756-05	2026-11-10 16:11:09.067829-05
+16	2	006fe3b6572d4ff9d8fbd676e3cf001d51d0b6acaf6fa0241645580cc5adabd9	2026-11-10 16:11:17.682422-05	2026-11-10 17:11:17.92757-05	\N
+17	2	3732171dd2951293b6e42d5637c4a7093438de41bf7af7ba7941138fefa9586e	2026-11-11 10:36:34.905357-05	2026-11-11 11:36:35.198768-05	\N
+18	2	37e89badb037b4a1dcf6d9c8b983a83a48380150c1d90226ac70b511a9d3f401	2026-11-11 14:03:41.583477-05	2026-11-11 15:03:41.853293-05	2026-11-11 14:56:29.663697-05
+19	39	f57cf8b64ba1595c3ed1932d4806fb4790305f3e8ac685810d3abd010f65a5b3	2026-11-11 14:56:46.888564-05	2026-11-11 15:56:47.132888-05	2026-11-11 15:06:36.881284-05
+20	2	4eb220c21de73166bad37560d1f5c02e224e0e55ff1ac93325243c26d2384e27	2026-11-11 15:06:43.891725-05	2026-11-11 16:06:44.167178-05	\N
+21	2	7342578eea1baa39d25724b1ccb508adaacbf0ad79c120dbd764eafd555691ff	2026-11-11 16:07:28.522404-05	2026-11-11 17:07:28.781279-05	2026-11-11 16:09:47.199704-05
+22	39	27a4ed094e99e5776be3510a32690b4aa10ccce663f70777da380f2453b89488	2026-11-11 16:09:56.979231-05	2026-11-11 17:09:57.230909-05	2026-11-11 16:34:33.178919-05
+23	2	a3e7d1083be52ff84e5e69949a83efedbdb61a0c01d4828f5b89c5627bae45f0	2026-11-11 16:34:40.120219-05	2026-11-11 17:34:40.368225-05	\N
+24	2	b4d09098fbfc7e1d74037a8c5a8f3ec17ee23aa138a966458ab7a69f7fca5c00	2026-11-12 09:52:16.230923-05	2026-11-12 10:52:16.474316-05	\N
+25	2	13961898602cce43fd2519861d2fedd22746c7e0c4b2e9b8c2e1c903cd7d3971	2026-11-13 20:08:46.415249-05	2026-11-13 21:08:46.857839-05	2026-11-13 20:36:48.007709-05
+26	2	a87f45b4610c36681e5bcb449c37da4524f9cbb46ff689d367b1c4f9fd943371	2026-11-13 20:36:59.799732-05	2026-11-13 21:37:00.218954-05	2026-11-13 20:40:52.447501-05
+27	39	6159ed797f782f8222d524adb0de732c97b89d970bb39a6e4eb9586add09db06	2026-11-13 20:41:08.696027-05	2026-11-13 21:41:09.171821-05	\N
+28	39	3871d866e511ad7d95bfce3a27555ca1684d06604dace95b6ae806730354b1f6	2026-11-14 10:37:33.884545-05	2026-11-14 11:37:34.158602-05	\N
 \.
 
 
@@ -686,6 +750,8 @@ COPY public.vehiculo (id, placa, color, modelo, marca, tipo, cliente_id) FROM st
 86	M166	negro	2026	Mazda	AUTOMOVIL	221
 371	M165	negro	2025	navi	MOTO	221
 420	M167	blanco	2026	mazda	AUTOMOVIL	266
+421	M168	negro y blanco	2024	Mazda	AUTOMOVIL	266
+422	M169	Blanco	2026	Best	MOTO	266
 \.
 
 
@@ -695,7 +761,7 @@ COPY public.vehiculo (id, placa, color, modelo, marca, tipo, cliente_id) FROM st
 -- Name: auditoria_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.auditoria_id_seq', 567, true);
+SELECT pg_catalog.setval('public.auditoria_id_seq', 607, true);
 
 
 --
@@ -704,7 +770,7 @@ SELECT pg_catalog.setval('public.auditoria_id_seq', 567, true);
 -- Name: celda_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.celda_id_seq', 10701, true);
+SELECT pg_catalog.setval('public.celda_id_seq', 10781, true);
 
 
 --
@@ -722,7 +788,7 @@ SELECT pg_catalog.setval('public.cliente_id_seq', 266, true);
 -- Name: estancia_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.estancia_id_seq', 210, true);
+SELECT pg_catalog.setval('public.estancia_id_seq', 213, true);
 
 
 --
@@ -767,7 +833,7 @@ SELECT pg_catalog.setval('public.registro_id_seq', 1, false);
 -- Name: sesion_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.sesion_id_seq', 7, true);
+SELECT pg_catalog.setval('public.sesion_id_seq', 28, true);
 
 
 --
@@ -776,7 +842,7 @@ SELECT pg_catalog.setval('public.sesion_id_seq', 7, true);
 -- Name: vehiculo_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.vehiculo_id_seq', 420, true);
+SELECT pg_catalog.setval('public.vehiculo_id_seq', 422, true);
 
 
 --
@@ -1221,11 +1287,11 @@ ALTER TABLE ONLY public.registro
     ADD CONSTRAINT registro_vehiculo_id_fkey FOREIGN KEY (vehiculo_id) REFERENCES public.vehiculo(id) ON DELETE RESTRICT;
 
 
--- Completed on 2026-11-03 15:06:35
+-- Completed on 2026-11-14 10:59:34
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict J4VEFfgxYo6r52t2UAlTDxY88BBmqDbSkYfFwmtYBRXAlzVMulbEjaTWWFk4U77
+\unrestrict jw7cjSkriDHUSd6tfDXk0rhIiuxgfwcBuueRQ34QuWuUebuAijO2qBNvxWHe8VT
 
