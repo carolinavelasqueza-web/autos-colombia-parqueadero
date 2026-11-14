@@ -1,0 +1,132 @@
+<section class="management" aria-labelledby="reports-title">
+  <header class="heading">
+    <div>
+      <span class="eyebrow">ANÁLISIS OPERATIVO</span>
+      <h1 id="reports-title">Reportes</h1>
+      <p>
+        Consulta la ocupación actual y el movimiento histórico del parqueadero por rango de fechas.
+      </p>
+    </div>
+  </header>
+
+  <section class="panel" aria-labelledby="range-title">
+    <h2 id="range-title">Rango del reporte</h2>
+    <form (ngSubmit)="consultar()">
+      <div class="filters">
+        <div class="field">
+          <label for="desde">Desde</label>
+          <input id="desde" type="date" [formControl]="desde" required />
+        </div>
+        <div class="field">
+          <label for="hasta">Hasta</label>
+          <input id="hasta" type="date" [formControl]="hasta" required />
+        </div>
+        <button class="primary" type="submit" [disabled]="loading()">
+          {{ loading() ? 'Generando…' : 'Generar reporte' }}
+        </button>
+      </div>
+      <p class="hint">
+        El rango máximo es de {{ diasMaximos }} días. Las fechas se interpretan en hora de Bogotá.
+      </p>
+    </form>
+  </section>
+
+  @if (error()) {
+    <p class="notice error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="panel empty" role="status">Generando el reporte…</p>
+  } @else if (reporte(); as r) {
+    <section class="kpis" aria-label="Indicadores del reporte">
+      <article class="kpi">
+        <p class="kpi-label">Capacidad total</p>
+        <p class="kpi-value">{{ r.capacidad_total }}</p>
+        <p class="kpi-hint">vehículos simultáneos</p>
+      </article>
+      <article class="kpi">
+        <p class="kpi-label">Ocupadas</p>
+        <p class="kpi-value">{{ r.ocupadas }}</p>
+        <p class="kpi-hint">{{ r.porcentaje }}% de ocupación</p>
+      </article>
+      <article class="kpi">
+        <p class="kpi-label">Disponibles</p>
+        <p class="kpi-value">{{ r.disponibles }}</p>
+        <p class="kpi-hint">celdas libres ahora</p>
+      </article>
+      <article class="kpi">
+        <p class="kpi-label">Entradas</p>
+        <p class="kpi-value">{{ r.entradas }}</p>
+        <p class="kpi-hint">en el rango consultado</p>
+      </article>
+      <article class="kpi">
+        <p class="kpi-label">Salidas</p>
+        <p class="kpi-value">{{ r.salidas }}</p>
+        <p class="kpi-hint">en el rango consultado</p>
+      </article>
+      <article class="kpi">
+        <p class="kpi-label">Permanencia promedio</p>
+        <p class="kpi-value">{{ permanencia(r.permanencia_promedio_minutos) }}</p>
+        <p class="kpi-hint">estancias cerradas</p>
+      </article>
+    </section>
+
+    <div class="charts">
+      <section class="panel chart" aria-labelledby="chart-ocupacion-title">
+        <h2 id="chart-ocupacion-title">Ocupación actual</h2>
+        <p class="chart-hint">Vehículos dentro frente a la capacidad de cada familia.</p>
+        <div class="canvas">
+          <canvas
+            #graficoOcupacion
+            role="img"
+            aria-label="Gráfico de ocupación actual por familia"
+          ></canvas>
+        </div>
+      </section>
+
+      <section class="panel chart" aria-labelledby="chart-historico-title">
+        <h2 id="chart-historico-title">Movimiento histórico</h2>
+        <p class="chart-hint">Entradas, salidas y porcentaje de ocupación por día.</p>
+        <div class="canvas">
+          <canvas
+            #graficoHistorico
+            role="img"
+            aria-label="Gráfico histórico de entradas, salidas y ocupación"
+          ></canvas>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel" aria-labelledby="family-title">
+      <div class="list-heading">
+        <h2 id="family-title">Detalle por familia</h2>
+        <span class="range"> {{ fechaLarga(r.desde) }} — {{ fechaLarga(r.hasta) }} </span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Familia</th>
+              <th scope="col">Capacidad</th>
+              <th scope="col">Ocupadas</th>
+              <th scope="col">Disponibles</th>
+              <th scope="col">Ocupación</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (familia of r.por_tipo; track familia.familia) {
+              <tr>
+                <th scope="row">{{ familia.familia }}</th>
+                <td>{{ familia.capacidad }}</td>
+                <td>{{ familia.ocupadas }}</td>
+                <td>{{ familia.disponibles }}</td>
+                <td>{{ familia.porcentaje }}%</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="generated">Reporte generado el {{ generado(r.generado_en) }}.</p>
+    </section>
+  }
+</section>

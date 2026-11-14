@@ -1,0 +1,139 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(25 43 36 / 55%);
+}
+.modal {
+  width: min(560px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 26px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgb(13 29 23 / 30%);
+}
+header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #526c60;
+  font-weight: 700;
+}
+h2 {
+  margin: 8px 0 0;
+  font-size: 22px;
+  color: #203a33;
+}
+p {
+  color: #586b60;
+  line-height: 1.6;
+}
+.close {
+  padding: 8px 12px;
+  border: 1px solid #c9d7ce;
+  border-radius: 8px;
+  background: #fff;
+  color: #214c43;
+  font: inherit;
+  cursor: pointer;
+}
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #203a33;
+}
+select,
+textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #b9c9bd;
+  border-radius: 8px;
+  background: #fff;
+  color: #203a33;
+  font: inherit;
+}
+textarea {
+  resize: vertical;
+}
+.field-error {
+  min-height: 16px;
+  font-size: 12px;
+  color: #a03930;
+}
+.notice {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.error {
+  background: #fff0ec;
+  color: #923b2e;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+button.primary {
+  padding: 10px 14px;
+  border: 1px solid #214c43;
+  border-radius: 8px;
+  background: #214c43;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+button.primary:hover:not(:disabled) {
+  background: #163d34;
+}
+.actions button:not(.primary) {
+  padding: 10px 14px;
+  border: 1px solid #c9d7ce;
+  border-radius: 8px;
+  background: #fff;
+  color: #214c43;
+  font: inherit;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #aa7b2e;
+  outline-offset: 3px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -1,0 +1,158 @@
+:host {
+  display: block;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 18px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(33, 76, 67, 0.12), transparent 32%),
+    radial-gradient(circle at 88% 82%, rgba(233, 184, 92, 0.18), transparent 30%), #f6f7f4;
+}
+
+.login-card {
+  width: min(100%, 440px);
+  padding: 34px;
+  background: #fff;
+  border: 1px solid #dce2dc;
+  border-radius: 18px;
+  box-shadow: 0 24px 50px rgba(32, 58, 51, 0.1);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 650;
+  color: #214c43;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  background: #214c43;
+  color: #fff;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.heading {
+  margin: 26px 0 20px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #526c60;
+  font-weight: 700;
+}
+
+h1 {
+  margin: 10px 0;
+  font-size: 32px;
+  letter-spacing: -0.8px;
+  color: #203a33;
+}
+
+p {
+  color: #586b60;
+  line-height: 1.6;
+}
+
+form {
+  display: grid;
+  gap: 4px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #203a33;
+}
+
+input {
+  font: inherit;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #b9c9bd;
+  border-radius: 8px;
+  background: #fff;
+  color: #203a33;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 3px solid #aa7b2e;
+  outline-offset: 3px;
+}
+
+.field-error {
+  min-height: 16px;
+  font-size: 12px;
+  color: #a03930;
+}
+
+button.primary {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 16px;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: #214c43;
+  border: 1px solid #214c43;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+button.primary:hover:not(:disabled) {
+  background: #163d34;
+}
+
+button.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.notice {
+  margin: 0 0 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.notice.error {
+  background: #fff0ec;
+  color: #923b2e;
+}
+
+.notice.warning {
+  background: #fff8e8;
+  color: #7a5510;
+}
+
+.hint {
+  margin: 18px 0 0;
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 24px 20px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+}

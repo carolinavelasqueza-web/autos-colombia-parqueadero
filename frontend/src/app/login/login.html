@@ -1,0 +1,66 @@
+<div class="login-page">
+  <section class="login-card" aria-labelledby="login-title">
+    <div class="brand" aria-label="Autos Colombia">
+      <span class="brand-mark" aria-hidden="true">AC</span>
+      <span>Autos Colombia</span>
+    </div>
+
+    <div class="heading">
+      <span class="eyebrow">ACCESO AL SISTEMA</span>
+      <h1 id="login-title">Iniciar sesión</h1>
+      <p>Ingresa con las credenciales asignadas por el administrador.</p>
+    </div>
+
+    @if (sesionExpirada()) {
+      <p class="notice warning" role="status">
+        Tu sesión expiró. Inicia sesión de nuevo para continuar.
+      </p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="ingresar()" novalidate>
+      <div class="field">
+        <label for="login-user">Usuario</label>
+        <input
+          id="login-user"
+          type="text"
+          formControlName="usuario"
+          autocomplete="username"
+          autocapitalize="none"
+          spellcheck="false"
+          aria-describedby="login-user-error"
+        />
+        <span id="login-user-error" class="field-error">
+          @if (form.controls.usuario.touched && form.controls.usuario.invalid) {
+            El usuario es obligatorio.
+          }
+        </span>
+      </div>
+
+      <div class="field">
+        <label for="login-password">Contraseña</label>
+        <input
+          id="login-password"
+          type="password"
+          formControlName="contrasena"
+          autocomplete="current-password"
+          aria-describedby="login-password-error"
+        />
+        <span id="login-password-error" class="field-error">
+          @if (form.controls.contrasena.touched && form.controls.contrasena.invalid) {
+            La contraseña es obligatoria.
+          }
+        </span>
+      </div>
+
+      @if (error()) {
+        <p class="notice error" role="alert">{{ error() }}</p>
+      }
+
+      <button class="primary" type="submit" [disabled]="loading()">
+        {{ loading() ? 'Ingresando…' : 'Ingresar' }}
+      </button>
+    </form>
+
+    <p class="hint">Si no tienes credenciales, solicita al administrador que cree tu cuenta.</p>
+  </section>
+</div>

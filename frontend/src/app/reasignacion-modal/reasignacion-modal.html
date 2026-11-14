@@ -1,0 +1,82 @@
+<div class="overlay" (click)="cerrarModal()">
+  <section
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="reassign-title"
+    aria-describedby="reassign-description"
+    (click)="$event.stopPropagation()"
+  >
+    <header>
+      <div>
+        <span class="eyebrow">REASIGNACIÓN DE CELDA</span>
+        <h2 id="reassign-title">Mover estancia a otra celda</h2>
+      </div>
+      <button type="button" class="close" (click)="cerrarModal()" [disabled]="saving()">
+        Cerrar
+      </button>
+    </header>
+
+    <p id="reassign-description">
+      Celda actual: <strong>{{ estancia().celda.codigo }}</strong> · Vehículo
+      <strong>{{ placa() || '#' + estancia().vehiculo_id }}</strong
+      >. El cambio se registra en auditoría.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+      <fieldset [disabled]="saving()">
+        <legend class="sr-only">Datos de la reasignación</legend>
+        <div class="field">
+          <label for="reassign-cell">Celda nueva</label>
+          <select
+            id="reassign-cell"
+            formControlName="celda_nueva_id"
+            [attr.aria-describedby]="'reassign-cell-error'"
+          >
+            <option [ngValue]="null">Selecciona una celda libre</option>
+            @for (celda of celdas(); track celda.id) {
+              <option [ngValue]="celda.id">{{ celda.codigo }} · {{ celda.tipo }}</option>
+            }
+          </select>
+          <span id="reassign-cell-error" class="field-error">
+            @if (form.controls.celda_nueva_id.touched && form.controls.celda_nueva_id.invalid) {
+              Selecciona la celda de destino.
+            }
+          </span>
+        </div>
+
+        <div class="field">
+          <label for="reassign-reason">Motivo (opcional)</label>
+          <textarea
+            id="reassign-reason"
+            formControlName="motivo"
+            maxlength="500"
+            rows="3"
+            placeholder="Ej. ajuste operativo o mantenimiento"
+          ></textarea>
+          <span class="field-error">
+            @if (form.controls.motivo.touched && form.controls.motivo.invalid) {
+              El motivo no puede superar 500 caracteres.
+            }
+          </span>
+        </div>
+
+        @if (!celdas().length) {
+          <p class="notice error" role="alert">
+            No hay celdas libres compatibles con el vehículo. Actualiza la disponibilidad.
+          </p>
+        }
+        @if (error()) {
+          <p class="notice error" role="alert">{{ error() }}</p>
+        }
+
+        <div class="actions">
+          <button type="submit" class="primary" [disabled]="saving() || !celdas().length">
+            {{ saving() ? 'Reasignando…' : 'Confirmar reasignación' }}
+          </button>
+          <button type="button" (click)="cerrarModal()" [disabled]="saving()">Cancelar</button>
+        </div>
+      </fieldset>
+    </form>
+  </section>
+</div>

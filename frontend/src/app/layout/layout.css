@@ -1,0 +1,152 @@
+:host {
+  display: block;
+}
+
+.page-shell {
+  max-width: 1200px;
+  margin: auto;
+  padding: 0 40px;
+}
+
+.site-header {
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  border-bottom: 1px solid #dce2dc;
+  padding: 12px 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 650;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  background: #214c43;
+  color: white;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+nav a {
+  text-decoration: none;
+  color: #526c60;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+nav a.active {
+  background: #e3ece5;
+  color: #214c43;
+  font-weight: 600;
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.session-user {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 13px;
+  color: #203a33;
+}
+
+.session-name {
+  font-weight: 650;
+  color: #203a33;
+}
+
+.session-detail {
+  font-size: 12px;
+  color: #627168;
+}
+
+.role-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #365c4e;
+  background: #eef3ee;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+button.logout {
+  font: inherit;
+  font-size: 13px;
+  padding: 9px 12px;
+  border: 1px solid #c9d7ce;
+  border-radius: 8px;
+  color: #214c43;
+  background: #fff;
+  cursor: pointer;
+}
+
+button.logout:hover {
+  background: #eef3ee;
+}
+
+button.logout:focus-visible {
+  outline: 3px solid #aa7b2e;
+  outline-offset: 3px;
+}
+
+main {
+  min-height: calc(100vh - 174px);
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 26px 0;
+  border-top: 1px solid #dce2dc;
+  font-size: 12px;
+  color: #627168;
+}
+
+@media (max-width: 760px) {
+  .page-shell {
+    padding: 0 18px;
+  }
+
+  .site-header {
+    align-items: flex-start;
+  }
+
+  .session {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .session-user {
+    align-items: flex-start;
+  }
+
+  footer {
+    flex-wrap: wrap;
+  }
+}

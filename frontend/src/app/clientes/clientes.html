@@ -1,0 +1,182 @@
+<section class="management" aria-labelledby="clients-title">
+  <header class="heading">
+    <div>
+      <span class="eyebrow">GESTIÓN DE CLIENTES</span>
+      <h1 id="clients-title">Clientes</h1>
+      <p>Administra los clientes y su estado de mensualidad.</p>
+    </div>
+    <button class="primary" type="button" (click)="newCliente()" [disabled]="busy()">
+      Nuevo cliente
+    </button>
+  </header>
+  @if (success()) {
+    <p class="notice success" role="status">{{ success() }}</p>
+  }
+  @if (actionError()) {
+    <p class="notice error" role="alert">{{ actionError() }}</p>
+  }
+  @if (showForm()) {
+    <section class="panel" aria-labelledby="form-title">
+      <h2 id="form-title">{{ editing() === null ? 'Registrar cliente' : 'Editar cliente' }}</h2>
+      <p class="hint">
+        Documento, nombre, teléfono y correo son obligatorios. Un cliente inactivo conserva sus
+        vehículos e historial, pero sus vehículos no podrán registrar entrada.
+      </p>
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <fieldset [disabled]="busy()">
+          <legend class="sr-only">Datos del cliente</legend>
+          <div class="form-grid">
+            @for (field of fields; track field.key) {
+              <div class="field">
+                <label [for]="field.key">{{ field.label }}</label
+                ><input
+                  [type]="field.type"
+                  [id]="field.key"
+                  [formControlName]="field.key"
+                  [autocomplete]="field.autocomplete"
+                  required
+                  [attr.aria-invalid]="!!fieldError(field.key)"
+                  [attr.aria-describedby]="field.key + '-error'"
+                /><span class="field-error" [id]="field.key + '-error'">{{
+                  fieldError(field.key)
+                }}</span>
+              </div>
+            }
+            <div class="field checkbox">
+              <label for="activo"
+                ><input id="activo" type="checkbox" formControlName="activo" /> Cliente activo</label
+              >
+              <span class="field-hint">
+                Desactívalo para impedir nuevas entradas sin borrar el historial.
+              </span>
+            </div>
+          </div>
+          <div class="actions">
+            <button type="submit" class="primary">
+              {{ saving() ? 'Guardando…' : 'Guardar cliente' }}</button
+            ><button type="button" (click)="cancel()">Cancelar</button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+  }
+  @if (pendingDelete(); as cliente) {
+    <section
+      class="panel confirmation"
+      role="alertdialog"
+      aria-labelledby="delete-title"
+      aria-describedby="delete-description"
+    >
+      <h2 id="delete-title">Desactivar cliente {{ cliente.nombre }}</h2>
+      <p id="delete-description">
+        ¿Quieres desactivar el cliente <strong>{{ cliente.nombre }}</strong
+        >, documento {{ cliente.documento }}? Sus vehículos e historial se conservan, pero no
+        podrán registrar nuevas entradas hasta reactivarlo.
+      </p>
+      <div class="actions">
+        <button type="button" (click)="cancel()" [disabled]="busy()">Cancelar</button
+        ><button type="button" class="danger" (click)="remove()" [disabled]="busy()">
+          {{ saving() ? 'Desactivando…' : 'Confirmar desactivación' }}
+        </button>
+      </div>
+    </section>
+  }
+  <section class="panel list" aria-label="Listado de clientes" [attr.aria-busy]="loading()">
+    <div class="list-heading">
+      <h2>
+        Clientes registrados <span class="count">{{ total() }}</span>
+      </h2>
+      <button type="button" (click)="load()" [disabled]="busy()">Actualizar listado</button>
+    </div>
+    @if (loading()) {
+      <p class="empty" role="status">Cargando clientes…</p>
+    } @else if (listError()) {
+      <p class="notice error" role="alert">{{ listError() }}</p>
+    } @else if (!items().length) {
+      <div class="empty">
+        <h3>Aún no hay clientes</h3>
+        <p>Registra un cliente para comenzar.</p>
+      </div>
+    } @else {
+      <div class="table-scroll">
+        <table>
+          <caption class="sr-only">
+            Clientes registrados
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Documento</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Teléfono</th>
+              <th scope="col">Correo</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cliente of items(); track cliente.id) {
+              <tr>
+                <th scope="row">{{ cliente.documento }}</th>
+                <td>{{ cliente.nombre }}</td>
+                <td>{{ cliente.telefono }}</td>
+                <td>{{ cliente.correo }}</td>
+                <td>
+                  <span class="type-tag" [class.inactive]="!cliente.activo">{{
+                    cliente.activo ? 'Activo' : 'Inactivo'
+                  }}</span>
+                </td>
+                <td class="row-actions">
+                  <button
+                    type="button"
+                    (click)="edit(cliente)"
+                    [disabled]="busy()"
+                    [attr.aria-label]="'Editar ' + cliente.nombre"
+                  >
+                    Editar</button
+                  >@if (cliente.activo) {
+                    <button
+                      type="button"
+                      class="delete-link"
+                      (click)="confirmDelete(cliente)"
+                      [disabled]="busy()"
+                      [attr.aria-label]="'Desactivar ' + cliente.nombre"
+                    >
+                      Desactivar
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      (click)="reactivate(cliente)"
+                      [disabled]="busy()"
+                      [attr.aria-label]="'Reactivar ' + cliente.nombre"
+                    >
+                      Reactivar
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    <nav class="pagination" aria-label="Paginación de clientes">
+      <span>Página {{ page() }} de {{ pages() }} · {{ limit }} por página</span>
+      <div class="actions">
+        <button
+          type="button"
+          (click)="load(offset() - limit)"
+          [disabled]="busy() || offset() === 0"
+        >
+          Anterior</button
+        ><button
+          type="button"
+          (click)="load(offset() + limit)"
+          [disabled]="busy() || offset() + limit >= total()"
+        >
+          Siguiente
+        </button>
+      </div>
+    </nav>
+  </section>
+</section>

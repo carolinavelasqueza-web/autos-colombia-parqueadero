@@ -1,0 +1,421 @@
+<section class="management" aria-labelledby="access-title">
+  <header class="heading">
+    <div>
+      <span class="eyebrow">AUTOS COLOMBIA</span>
+      <h1 id="access-title">Control de acceso</h1>
+      <p>Registra vehículos nuevos, entradas, consultas y salidas.</p>
+      @if (auth.usuario(); as user) {
+        <p class="session-note">
+          Sesión: <strong>{{ user.usuario }}</strong> · {{ user.rol }}
+        </p>
+      }
+    </div>
+  </header>
+
+  <section class="kpis" aria-label="Disponibilidad del parqueadero" aria-live="polite">
+    <article class="kpi">
+      <span class="kpi-icon" aria-hidden="true">🚗</span>
+      <div>
+        <p class="kpi-label">Autos disponibles</p>
+        <p class="kpi-value">{{ kpiAutos().libres }} / {{ kpiAutos().total }}</p>
+        <p class="kpi-hint">libres</p>
+      </div>
+    </article>
+    <article class="kpi">
+      <span class="kpi-icon" aria-hidden="true">🏍️</span>
+      <div>
+        <p class="kpi-label">Motos disponibles</p>
+        <p class="kpi-value">{{ kpiMotos().libres }} / {{ kpiMotos().total }}</p>
+        <p class="kpi-hint">libres</p>
+      </div>
+    </article>
+    <article class="kpi">
+      <span class="kpi-icon" aria-hidden="true">🅿️</span>
+      <div>
+        <p class="kpi-label">Ocupación total</p>
+        <p class="kpi-value">{{ ocupacion() }}%</p>
+        <p class="kpi-hint">{{ ocupadas() }} de {{ total() }} celdas ocupadas</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel" aria-label="Actualizar disponibilidad">
+    <div class="list-heading">
+      <div>
+        <h2>Disponibilidad de celdas</h2>
+        <p class="hint">
+          {{ disponibles() }} de {{ total() }} celdas activas libres · {{ ocupadas() }} ocupadas
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="cargarDisponibilidad()"
+        [disabled]="catalogLoading() || saving()"
+      >
+        Actualizar disponibilidad
+      </button>
+    </div>
+    @if (catalogLoading()) {
+      <p role="status">Consultando disponibilidad de celdas…</p>
+    }
+    @if (catalogError()) {
+      <p role="alert" class="notice error">{{ catalogError() }}</p>
+    }
+  </section>
+
+  <section class="panel" aria-labelledby="vehicle-title">
+    <div class="list-heading">
+      <div>
+        <h2 id="vehicle-title">¿Vehículo nuevo?</h2>
+        <p class="hint">Si la placa no existe en el sistema, regístrala antes de la entrada.</p>
+      </div>
+      @if (!mostrarRegistro()) {
+        <button type="button" (click)="abrirRegistroVehiculo()" [disabled]="registrandoVehiculo()">
+          Registrar vehículo
+        </button>
+      }
+    </div>
+
+    @if (mostrarRegistro()) {
+      <form [formGroup]="vehiculoForm" (ngSubmit)="registrarVehiculo()">
+        <fieldset [disabled]="registrandoVehiculo()">
+          <legend class="sr-only">Datos del vehículo nuevo</legend>
+          <div class="form-grid">
+            <div class="field">
+              <label for="vehicle-plate">Placa</label>
+              <input id="vehicle-plate" type="text" formControlName="placa" autocomplete="off" />
+              <span class="field-error">
+                @if (vehiculoForm.controls.placa.touched && vehiculoForm.controls.placa.invalid) {
+                  La placa es obligatoria.
+                }
+              </span>
+            </div>
+            <div class="field">
+              <label for="vehicle-brand">Marca</label>
+              <input id="vehicle-brand" type="text" formControlName="marca" autocomplete="off" />
+              <span class="field-error">
+                @if (vehiculoForm.controls.marca.touched && vehiculoForm.controls.marca.invalid) {
+                  La marca es obligatoria.
+                }
+              </span>
+            </div>
+            <div class="field">
+              <label for="vehicle-year">Modelo (año)</label>
+              <input id="vehicle-year" type="number" formControlName="modelo" min="1" max="9999" />
+              <span class="field-error">
+                @if (vehiculoForm.controls.modelo.touched && vehiculoForm.controls.modelo.invalid) {
+                  Indica un año válido entre 1 y 9999.
+                }
+              </span>
+            </div>
+            <div class="field">
+              <label for="vehicle-color">Color</label>
+              <input id="vehicle-color" type="text" formControlName="color" autocomplete="off" />
+              <span class="field-error">
+                @if (vehiculoForm.controls.color.touched && vehiculoForm.controls.color.invalid) {
+                  El color es obligatorio.
+                }
+              </span>
+            </div>
+            <div class="field">
+              <label for="vehicle-type">Tipo</label>
+              <select id="vehicle-type" formControlName="tipo">
+                <option value="">Selecciona un tipo</option>
+                @for (tipo of tipos; track tipo) {
+                  <option [value]="tipo">{{ tipo }}</option>
+                }
+              </select>
+              <span class="field-error">
+                @if (vehiculoForm.controls.tipo.touched && vehiculoForm.controls.tipo.invalid) {
+                  Selecciona el tipo de vehículo.
+                }
+              </span>
+            </div>
+            <div class="field">
+              <label for="vehicle-client">Cliente</label>
+              <select
+                id="vehicle-client"
+                formControlName="cliente_id"
+                [attr.aria-describedby]="clientesError() ? 'vehicle-client-error' : null"
+              >
+                <option [ngValue]="null">
+                  {{ clientesLoading() ? 'Cargando clientes…' : 'Selecciona un cliente' }}
+                </option>
+                @for (cliente of clientes(); track cliente.id) {
+                  <option [ngValue]="cliente.id">
+                    {{ cliente.nombre }} · {{ cliente.documento
+                    }}{{ cliente.activo ? '' : ' (inactivo)' }}
+                  </option>
+                }
+              </select>
+              <span class="field-error">
+                @if (
+                  vehiculoForm.controls.cliente_id.touched &&
+                  vehiculoForm.controls.cliente_id.invalid
+                ) {
+                  Selecciona el cliente propietario del vehículo.
+                }
+              </span>
+              @if (clientesError()) {
+                <span id="vehicle-client-error" class="field-error" role="alert">{{
+                  clientesError()
+                }}</span>
+              }
+            </div>
+          </div>
+          <div class="actions">
+            <button class="primary" type="submit" [disabled]="registrandoVehiculo()">
+              {{ registrandoVehiculo() ? 'Registrando…' : 'Guardar vehículo' }}
+            </button>
+            <button type="button" (click)="cancelarRegistroVehiculo()">Cancelar</button>
+          </div>
+        </fieldset>
+      </form>
+    }
+
+    @if (errorVehiculo()) {
+      <p class="notice error" role="alert">{{ errorVehiculo() }}</p>
+    }
+    @if (exitoVehiculo()) {
+      <p class="notice success" role="status">{{ exitoVehiculo() }}</p>
+    }
+  </section>
+
+  <section class="panel" aria-labelledby="entry-title">
+    <h2 id="entry-title">Registrar entrada</h2>
+    <p class="hint">
+      La celda se asigna automáticamente entre las disponibles del tipo del vehículo. El vehículo
+      debe tener un cliente activo y la puerta debe estar activa.
+    </p>
+    <form [formGroup]="entrada" (ngSubmit)="registrarEntrada()">
+      <fieldset [disabled]="busy()">
+        <legend class="sr-only">Datos de entrada</legend>
+        <div class="form-grid">
+          <div class="field">
+            <label for="entry-plate">Placa de entrada</label
+            ><input
+              id="entry-plate"
+              formControlName="placa"
+              type="text"
+              autocomplete="off"
+              aria-describedby="entry-plate-error"
+            />
+            <span id="entry-plate-error" class="field-error">
+              @if (entrada.controls.placa.touched && entrada.controls.placa.invalid) {
+                La placa es obligatoria y no puede estar vacía.
+              }
+            </span>
+          </div>
+          <div class="field">
+            <label for="entry-gate">Puerta de entrada</label>
+            <select
+              id="entry-gate"
+              formControlName="puerta_entrada_id"
+              aria-describedby="entry-gate-error"
+            >
+              <option [ngValue]="null">
+                {{ puertasLoading() ? 'Cargando puertas…' : 'Selecciona la puerta de entrada' }}
+              </option>
+              @for (puerta of puertas(); track puerta.id) {
+                <option [ngValue]="puerta.id">{{ puerta.codigo }} · {{ puerta.ubicacion }}</option>
+              }
+            </select>
+            <span id="entry-gate-error" class="field-error">
+              @if (
+                entrada.controls.puerta_entrada_id.touched &&
+                entrada.controls.puerta_entrada_id.invalid
+              ) {
+                Selecciona la puerta por la que ingresa el vehículo.
+              }
+            </span>
+          </div>
+        </div>
+        <button class="primary" type="submit" [disabled]="busy() || !puertas().length">
+          Registrar entrada
+        </button>
+      </fieldset>
+    </form>
+    @if (puertasError()) {
+      <p class="notice error" role="alert">
+        {{ puertasError() }}
+        <button type="button" (click)="cargarPuertas()" [disabled]="puertasLoading()">
+          Reintentar puertas
+        </button>
+      </p>
+    }
+    @if (errorEntrada()) {
+      <p class="notice error" role="alert">{{ errorEntrada() }}</p>
+    }
+    @if (exitoEntrada()) {
+      <p class="notice success" role="status">{{ exitoEntrada() }}</p>
+    }
+    @if (fichoOrigen() === 'entrada') {
+      @if (fichoLoading()) {
+        <p role="status">Cargando ficho…</p>
+      }
+      @if (fichoError()) {
+        <p class="notice error" role="alert">{{ fichoError() }}</p>
+      }
+      @if (ficho(); as comprobante) {
+        <app-ficho-preview [ficho]="comprobante" />
+      }
+    }
+  </section>
+
+  <section class="panel" aria-labelledby="query-title">
+    <h2 id="query-title">Consultar vehículo y registrar salida</h2>
+    <form [formGroup]="consulta" (ngSubmit)="buscar()">
+      <fieldset [disabled]="saving()">
+        <legend class="sr-only">Consulta y salida</legend>
+        <div class="form-grid">
+          <div class="field">
+            <label for="query-plate">Placa a consultar</label
+            ><input id="query-plate" type="text" formControlName="placa" />
+            <span class="field-error">
+              @if (consulta.controls.placa.touched && consulta.controls.placa.invalid) {
+                La placa es obligatoria y no puede estar vacía.
+              }
+            </span>
+          </div>
+        </div>
+        <button type="submit" [disabled]="busy()">Consultar vehículo</button>
+      </fieldset>
+    </form>
+    @if (querying()) {
+      <p role="status">Consultando vehículo…</p>
+    }
+    @if (saving()) {
+      <p role="status">Registrando operación…</p>
+    }
+    @if (puertasError()) {
+      <p class="notice error" role="alert">
+        {{ puertasError() }}
+        <button type="button" (click)="cargarPuertas()" [disabled]="puertasLoading()">
+          Reintentar puertas
+        </button>
+      </p>
+    }
+    @if (estado(); as state) {
+      <div class="notice" role="status">
+        <strong>{{ state.vehiculo.placa }} · {{ state.esta_dentro ? 'Dentro' : 'Fuera' }}</strong>
+        <p>{{ state.vehiculo.marca }} · {{ state.vehiculo.color }}</p>
+        @if (state.estancia; as stay) {
+          <p>
+            Celda {{ stay.celda.codigo }} · Entrada {{ fecha(stay.entrada) }} · Puerta
+            {{ puertaCodigo(stay.puerta_entrada_id) }}
+          </p>
+          @if (stay.ficho_codigo) {
+            <p>
+              Ficho: <strong class="ficho-code">{{ stay.ficho_codigo }}</strong>
+            </p>
+          } @else {
+            <p class="notice error" role="alert">
+              Esta estancia heredada no tiene ficho. No se puede registrar la salida hasta
+              regularizarla.
+            </p>
+          }
+          <div class="actions stay-actions">
+            <button type="button" (click)="mostrarFicho(stay.id)">Ver / imprimir ficho</button>
+            <button type="button" (click)="abrirReasignacion(stay)">Reasignar celda</button>
+          </div>
+          @if (stay.ficho_codigo) {
+            <form [formGroup]="salidaForm" (ngSubmit)="registrarSalida()" class="exit-form">
+              <fieldset [disabled]="busy()">
+                <legend>Registrar salida</legend>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="exit-ficho">Código del ficho</label>
+                    <input
+                      id="exit-ficho"
+                      type="text"
+                      formControlName="ficho_codigo"
+                      autocomplete="off"
+                      spellcheck="false"
+                      placeholder="AC-YYYYMMDD-XXXX"
+                      aria-describedby="exit-ficho-error"
+                    />
+                    <span id="exit-ficho-error" class="field-error">
+                      @if (
+                        salidaForm.controls.ficho_codigo.touched &&
+                        salidaForm.controls.ficho_codigo.invalid
+                      ) {
+                        Ingresa el código impreso con formato AC-YYYYMMDD-XXXX.
+                      }
+                    </span>
+                  </div>
+                  <div class="field">
+                    <label for="exit-gate">Puerta de salida</label>
+                    <select
+                      id="exit-gate"
+                      formControlName="puerta_salida_id"
+                      aria-describedby="exit-gate-error"
+                    >
+                      <option [ngValue]="null">
+                        {{
+                          puertasLoading() ? 'Cargando puertas…' : 'Selecciona la puerta de salida'
+                        }}
+                      </option>
+                      @for (puerta of puertas(); track puerta.id) {
+                        <option [ngValue]="puerta.id">
+                          {{ puerta.codigo }} · {{ puerta.ubicacion }}
+                        </option>
+                      }
+                    </select>
+                    <span id="exit-gate-error" class="field-error">
+                      @if (
+                        salidaForm.controls.puerta_salida_id.touched &&
+                        salidaForm.controls.puerta_salida_id.invalid
+                      ) {
+                        Selecciona la puerta por la que sale el vehículo.
+                      }
+                    </span>
+                  </div>
+                </div>
+                <p class="hint">
+                  Verifica el código contra el comprobante impreso. La salida cierra la estancia y
+                  marca el ficho como utilizado.
+                </p>
+                <button type="submit" class="primary" [disabled]="busy() || !puertas().length">
+                  Confirmar salida
+                </button>
+              </fieldset>
+            </form>
+          }
+        } @else {
+          <p>Vehículo registrado sin estancia abierta.</p>
+        }
+      </div>
+    }
+    @if (exitoReasignacion()) {
+      <p role="status" class="notice success">{{ exitoReasignacion() }}</p>
+    }
+    @if (fichoOrigen() === 'consulta') {
+      @if (fichoLoading()) {
+        <p role="status">Cargando ficho…</p>
+      }
+      @if (fichoError()) {
+        <p class="notice error" role="alert">{{ fichoError() }}</p>
+      }
+      @if (ficho(); as comprobante) {
+        <app-ficho-preview [ficho]="comprobante" />
+      }
+    }
+    @if (errorConsulta()) {
+      <p role="alert" class="notice error">{{ errorConsulta() }}</p>
+    }
+    @if (exitoSalida()) {
+      <p role="status" class="notice success">{{ exitoSalida() }}</p>
+    }
+    <p class="hint">Fechas mostradas en America/Bogota. La fecha y hora las asigna el servidor.</p>
+  </section>
+
+  @if (reasignacionEstancia(); as stay) {
+    <app-reasignacion-modal
+      [estancia]="stay"
+      [placa]="estado()?.vehiculo?.placa ?? ''"
+      [celdas]="celdasReasignables()"
+      (reasignada)="alReasignar($event)"
+      (cerrar)="cerrarReasignacion()"
+    />
+  }
+</section>

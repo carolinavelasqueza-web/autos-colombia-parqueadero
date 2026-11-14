@@ -1,0 +1,60 @@
+<div class="page-shell">
+  <header class="site-header">
+    <a class="brand" [routerLink]="auth.rutaInicio()" aria-label="Autos Colombia, inicio">
+      <span class="brand-mark" aria-hidden="true">AC</span><span>Autos Colombia</span>
+    </a>
+
+    <nav aria-label="Navegación principal">
+      @if (auth.esAdministrador()) {
+        <a
+          routerLink="/"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          ariaCurrentWhenActive="page"
+          >Inicio</a
+        >
+      }
+      <a routerLink="/control-acceso" routerLinkActive="active" ariaCurrentWhenActive="page"
+        >Control de acceso</a
+      >
+      <a routerLink="/vehiculos-dentro" routerLinkActive="active" ariaCurrentWhenActive="page"
+        >Vehículos dentro</a
+      >
+
+      <!-- Clientes visible para OPERADOR y ADMINISTRADOR -->
+      <a routerLink="/gestion/clientes" routerLinkActive="active" ariaCurrentWhenActive="page"
+        >Clientes</a
+      >
+
+      @if (auth.esAdministrador()) {
+        <a routerLink="/gestion/vehiculos" routerLinkActive="active" ariaCurrentWhenActive="page"
+          >Vehículos</a
+        >
+        <a routerLink="/gestion/operadores" routerLinkActive="active" ariaCurrentWhenActive="page"
+          >Operadores</a
+        >
+        <a routerLink="/gestion/celdas" routerLinkActive="active" ariaCurrentWhenActive="page"
+          >Celdas</a
+        >
+        <a routerLink="/gestion/reportes" routerLinkActive="active" ariaCurrentWhenActive="page"
+          >Reportes</a
+        >
+      }
+    </nav>
+
+    <div class="session">
+      @if (auth.usuario(); as user) {
+        <span class="session-user">
+          <strong class="session-name">{{ user.nombre }}</strong>
+          <span class="session-detail">{{ user.usuario }}</span>
+          <span class="role-badge">{{ rolEtiqueta() }}</span>
+        </span>
+      }
+      <button type="button" class="logout" (click)="cerrarSesion()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main><router-outlet /></main>
+
+  <footer><span>Autos Colombia</span><span>Control vehicular con claridad.</span></footer>
+</div>

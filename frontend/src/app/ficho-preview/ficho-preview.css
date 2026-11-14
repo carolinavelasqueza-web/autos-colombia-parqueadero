@@ -1,0 +1,98 @@
+.ficho {
+  margin-top: 20px;
+  padding: 24px;
+  border: 2px dashed #9fb3a6;
+  border-radius: 12px;
+  background: #fff;
+  color: #203a33;
+  max-width: 520px;
+}
+.ficho-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #dce2dc;
+}
+.brand {
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #586b60;
+}
+.status {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: #e6f1e8;
+  color: #246044;
+  white-space: nowrap;
+}
+.status.closed {
+  background: #eef0f3;
+  color: #4f5964;
+}
+.code {
+  margin: 18px 0;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.detalle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+  margin: 0;
+}
+.detalle div {
+  min-width: 0;
+}
+dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #526c60;
+  font-weight: 700;
+}
+dd {
+  margin: 4px 0 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.ficho-footer {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid #dce2dc;
+}
+.ficho-footer p {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #586b60;
+}
+.print {
+  padding: 10px 16px;
+  border: 1px solid #214c43;
+  border-radius: 8px;
+  background: #214c43;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+.print:hover {
+  background: #163d34;
+}
+@media print {
+  .ficho {
+    border: 1px dashed #555;
+    max-width: none;
+  }
+}

@@ -1,0 +1,43 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f6f7f4;
+  color: #203a33;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a:focus-visible {
+  outline: 3px solid #94610e;
+  outline-offset: 6px;
+}
+
+/* La impresión del ficho oculta el resto de la aplicación. */
+@media print {
+  body {
+    background: #fff;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .ficho-print,
+  .ficho-print * {
+    visibility: visible;
+  }
+  .ficho-print {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .ficho-print .no-print {
+    display: none !important;
+  }
+  @page {
+    margin: 12mm;
+  }
+}

@@ -1,0 +1,55 @@
+<article class="ficho ficho-print" [attr.aria-label]="'Ficho ' + ficho().ficho_codigo">
+  <header class="ficho-header">
+    <div>
+      <span class="brand">AUTOS COLOMBIA</span>
+      <p class="subtitle">Comprobante de entrada</p>
+    </div>
+    <span class="status" [class.closed]="ficho().salida !== null">
+      {{ ficho().salida ? 'SALIDA REGISTRADA' : 'VIGENTE' }}
+    </span>
+  </header>
+
+  <p class="code">{{ ficho().ficho_codigo }}</p>
+
+  <dl class="detalle">
+    <div>
+      <dt>Vehículo</dt>
+      <dd>{{ ficho().vehiculo.placa }}</dd>
+    </div>
+    <div>
+      <dt>Celda</dt>
+      <dd>{{ ficho().celda.codigo }} · {{ ficho().celda.tipo }}</dd>
+    </div>
+    <div>
+      <dt>Puerta de entrada</dt>
+      <dd>{{ ficho().puerta_entrada?.codigo ?? 'No registrada' }}</dd>
+    </div>
+    <div>
+      <dt>Entrada</dt>
+      <dd>{{ fecha(ficho().entrada) }} (Bogotá)</dd>
+    </div>
+    @if (ficho().cliente; as cliente) {
+      <div>
+        <dt>Cliente</dt>
+        <dd>{{ cliente.nombre }} · {{ cliente.documento }}</dd>
+      </div>
+    }
+    @if (ficho().salida; as salida) {
+      <div>
+        <dt>Salida</dt>
+        <dd>{{ fecha(salida) }} (Bogotá)</dd>
+      </div>
+      <div>
+        <dt>Puerta de salida</dt>
+        <dd>{{ ficho().puerta_salida?.codigo ?? 'No registrada' }}</dd>
+      </div>
+    }
+  </dl>
+
+  <footer class="ficho-footer">
+    <p>
+      Conserva este comprobante para registrar la salida. El código es personal e intransferible.
+    </p>
+    <button type="button" class="print no-print" (click)="imprimir()">Imprimir Ficho</button>
+  </footer>
+</article>
