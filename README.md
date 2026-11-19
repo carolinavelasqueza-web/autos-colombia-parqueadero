@@ -34,6 +34,12 @@ Noviembre 2026
 * **Control de acceso y capacidad:** Consulta de disponibilidad en tiempo real por tipo de vehículo, asignación automática de celda libre compatible, generación de comprobante/ficho único (`AC-YYYYMMDD-XXXX`) y selección obligatoria de puerta activa (`NORTE` / `SUR`).
 * **Reasignación de celdas:** Cambio transaccional de celda (`POST /estancias/{id}/reasignar`) para vehículos con estancia activa hacia otra celda libre y compatible, registrando motivo opcional en `estancia_reasignacion` y trazabilidad en `auditoria`.
 
+### 3. **Usuarios de prueba precargados (para ejecución local):**
+   * Al importar el respaldo `autos_colombia1.sql` o ejecutar las migraciones iniciales, el sistema cuenta con dos perfiles configurados para pruebas funcionales:
+     * **Rol Administrador:** usuario `admin`
+     * **Rol Operador:** usuario `operador1`
+   * *(Nota de seguridad: Las contraseñas se almacenan cifradas mediante `bcrypt` en la base de datos y las credenciales de conexión se gestionan localmente mediante el archivo `.env`, el cual se excluye del repositorio por política de seguridad).*
+
 ## 📌 Endpoints Principales de la API
 
 | Método y ruta | Descripción y permisos |
