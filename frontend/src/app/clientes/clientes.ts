@@ -3,6 +3,7 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { Cliente, ClienteActualizar, ClienteCrear } from '../models/cliente';
+import { estaPorVencer, formatearVencimiento } from '../models/mensualidad';
 import { ErrorApi } from '../models/vehiculo';
 import { AuthService } from '../services/auth.service';
 import { ClientesService } from '../services/clientes.service';
@@ -206,6 +207,15 @@ export class Clientes {
         }
       },
     });
+  }
+
+  /** true cuando el cliente está activo y su mensualidad vence en 5 días o menos. */
+  porVencer(cliente: Cliente): boolean {
+    return cliente.activo && estaPorVencer(cliente.fecha_vencimiento);
+  }
+
+  vencimientoTexto(cliente: Cliente): string {
+    return formatearVencimiento(cliente.fecha_vencimiento);
   }
 
   private setFieldError(field: Field, message: string): void {

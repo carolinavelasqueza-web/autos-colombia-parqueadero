@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
@@ -6,7 +6,7 @@ import pytest
 
 from app.database import get_session
 from app.main import app
-from app.models import Puerta
+from app.models import Cliente, Puerta, Vehiculo
 from app.schemas.celda import CeldaRespuesta
 from app.schemas.estancia import (
     EstanciaAbiertaRespuesta,
@@ -66,6 +66,89 @@ def test_openapi_y_salud():
 def test_entrada_invalida(payload):
     with TestClient(app) as client:
         assert client.post('/estancias/entrada', json=payload).status_code == 422
+
+
+def _cliente(activo=True, vencimiento=date(2099, 12, 31)):
+    return Cliente(
+        id=1,
+        documento="1",
+        nombre="Cliente de prueba",
+        telefono="001",
+        correo="cliente@example.com",
+        activo=activo,
+        fecha_vencimiento=vencimiento,
+    )
+
+
+def _vehiculo_de_prueba(cliente=True, activo=True, vencimiento=date(2099, 12, 31)):
+    return Vehiculo(
+        id=1,
+        placa="ABC123",
+        color="Azul",
+        modelo=2026,
+        marca="Marca",
+        tipo="MOTO",
+        cliente=_cliente(activo, vencimiento) if cliente else None,
+    )
+
+
+def _usar_sesion(session):
+    def override():
+        yield session
+
+    app.dependency_overrides[get_session] = override
+
+
+@pytest.mark.parametrize(
+    "vehiculo,mensaje",
+    [
+        (_vehiculo_de_prueba(cliente=False), "Vehículo no registrado."),
+        (_vehiculo_de_prueba(activo=False), "Cliente inactivo."),
+        (
+            _vehiculo_de_prueba(activo=False, vencimiento=date(2020, 1, 1)),
+            "Cliente inactivo.",
+        ),
+        (_vehiculo_de_prueba(vencimiento=None), "Mensualidad vencida."),
+        (
+            _vehiculo_de_prueba(vencimiento=date(2020, 1, 1)),
+            "Mensualidad vencida.",
+        ),
+    ],
+)
+def test_entrada_devuelve_los_mensajes_segregados(vehiculo, mensaje):
+    session = MagicMock()
+    session.get.return_value = Puerta(
+        id=1, codigo="NORTE", ubicacion="Entrada Norte", activo=True
+    )
+    session.scalar.return_value = vehiculo
+    _usar_sesion(session)
+
+    with TestClient(app) as client:
+        respuesta = client.post(
+            "/estancias/entrada", json={"placa": "ABC123", "puerta_entrada_id": 1}
+        )
+
+    assert respuesta.status_code == 409
+    assert respuesta.json() == {"detail": mensaje}
+    session.commit.assert_not_called()
+
+
+def test_entrada_con_placa_inexistente_devuelve_404():
+    session = MagicMock()
+    session.get.return_value = Puerta(
+        id=1, codigo="NORTE", ubicacion="Entrada Norte", activo=True
+    )
+    session.scalar.return_value = None
+    _usar_sesion(session)
+
+    with TestClient(app) as client:
+        respuesta = client.post(
+            "/estancias/entrada", json={"placa": "NOEXISTE", "puerta_entrada_id": 1}
+        )
+
+    assert respuesta.status_code == 404
+    assert respuesta.json() == {"detail": "Vehículo no encontrado."}
+    session.commit.assert_not_called()
 
 
 def test_salida_exige_ficho_y_puerta_sin_campos_extra():

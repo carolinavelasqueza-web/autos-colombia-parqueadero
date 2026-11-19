@@ -51,10 +51,13 @@ describe('Layout', () => {
       '/',
       '/control-acceso',
       '/vehiculos-dentro',
-      '/gestion/vehiculos',
       '/gestion/clientes',
+      '/gestion/pagos/nuevo',
+      '/gestion/pagos',
+      '/gestion/vehiculos',
       '/gestion/operadores',
       '/gestion/celdas',
+      '/gestion/tarifas',
       '/gestion/reportes',
     ]);
     expect(element.querySelector('.session-name')?.textContent).toContain('Ana Gómez');
@@ -69,11 +72,18 @@ describe('Layout', () => {
     const element = fixture.nativeElement as HTMLElement;
     const links = [...element.querySelectorAll('nav a')].map((link) => link.getAttribute('href'));
 
-    expect(links).toEqual(['/control-acceso', '/vehiculos-dentro']);
+    expect(links).toEqual([
+      '/control-acceso',
+      '/vehiculos-dentro',
+      '/gestion/clientes',
+      '/gestion/pagos/nuevo',
+      '/gestion/pagos',
+    ]);
     expect(element.querySelector('.role-badge')?.textContent).toContain('Operador');
     expect(element.querySelector('a[href="/gestion/operadores"]')).toBeNull();
     expect(element.querySelector('a[href="/gestion/celdas"]')).toBeNull();
     expect(element.querySelector('a[href="/gestion/reportes"]')).toBeNull();
+    expect(element.querySelector('a[href="/gestion/tarifas"]')).toBeNull();
   });
 
   it('cierra la sesión y vuelve al login', () => {

@@ -206,6 +206,18 @@ thead th {
   color: #923b2e;
   background: #fff0ec;
 }
+.warning-tag {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #7a5a12;
+  background: #fdf5e3;
+  border: 1px solid #e7cf93;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
 .pagination {
   margin-top: 24px;
   font-size: 13px;

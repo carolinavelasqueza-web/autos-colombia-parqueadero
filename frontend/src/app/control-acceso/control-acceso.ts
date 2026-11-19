@@ -15,11 +15,14 @@ import { Cliente } from '../models/cliente';
 import { EstadoVehiculo, EstanciaAbierta, Ficho, Reasignacion } from '../models/estancia';
 import { Puerta } from '../models/puerta';
 import { TIPOS_VEHICULO, TipoVehiculo, Vehiculo, VehiculoCrear } from '../models/vehiculo';
+import { Mensualidad } from '../models/pago';
+import { estaPorVencer, formatearVencimiento } from '../models/mensualidad';
 import { ApiService } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
 import { CeldasService } from '../services/celdas.service';
 import { ClientesService } from '../services/clientes.service';
 import { EstanciasService } from '../services/estancias.service';
+import { PagosService } from '../services/pagos.service';
 import { PuertasService } from '../services/puertas.service';
 
 const nonBlank: ValidatorFn = (c) =>
@@ -48,6 +51,7 @@ export class ControlAcceso {
   private readonly celdasApi = inject(CeldasService);
   private readonly clientesApi = inject(ClientesService);
   private readonly puertasApi = inject(PuertasService);
+  private readonly pagosApi = inject(PagosService);
   readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly destroy = inject(DestroyRef);
@@ -102,6 +106,15 @@ export class ControlAcceso {
   readonly clientes = signal<Cliente[]>([]);
   readonly clientesLoading = signal(false);
   readonly clientesError = signal('');
+  // Mensualidad del cliente del vehículo consultado (para la alerta de vencimiento).
+  readonly mensualidad = signal<Mensualidad | null>(null);
+  readonly vencimientoProximo = computed(() => {
+    const info = this.mensualidad();
+    if (!info) return null;
+    const fecha = info.cliente.fecha_vencimiento;
+    if (info.estado !== 'POR_VENCER' || !estaPorVencer(fecha)) return null;
+    return formatearVencimiento(fecha);
+  });
   readonly kpiAutos = computed(() => this.kpi('AUTOMOVIL'));
   readonly kpiMotos = computed(() => this.kpi('MOTO'));
   readonly total = computed(() => this.disponibilidad()?.total ?? 0);
@@ -127,6 +140,7 @@ export class ControlAcceso {
       .subscribe(() => {
         this.version++;
         this.estado.set(null);
+        this.mensualidad.set(null);
         this.errorConsulta.set('');
         this.exitoSalida.set('');
         this.exitoReasignacion.set('');
@@ -235,6 +249,22 @@ export class ControlAcceso {
       });
   }
 
+  // Consulta la mensualidad del cliente para avisar si está por vencer.
+  // Es informativo: si falla, no interrumpe la consulta del vehículo.
+  private cargarMensualidad(clienteId: number, version: number): void {
+    this.pagosApi
+      .mensualidad(clienteId)
+      .pipe(takeUntilDestroyed(this.destroy))
+      .subscribe({
+        next: (info) => {
+          if (version === this.version) this.mensualidad.set(info);
+        },
+        error: () => {
+          if (version === this.version) this.mensualidad.set(null);
+        },
+      });
+  }
+
   registrarEntrada(): void {
     if (this.busy()) return;
     this.entrada.markAllAsTouched();
@@ -281,6 +311,7 @@ export class ControlAcceso {
     this.consulta.controls.placa.setValue(value, { emitEvent: false });
     const version = ++this.version;
     this.estado.set(null);
+    this.mensualidad.set(null);
     this.errorConsulta.set('');
     this.exitoSalida.set('');
     this.exitoReasignacion.set('');
@@ -296,7 +327,10 @@ export class ControlAcceso {
       .subscribe({
         next: (result) => {
           this.querying.set(false);
-          if (version === this.version) this.estado.set(result);
+          if (version !== this.version) return;
+          this.estado.set(result);
+          const cliente = result.vehiculo.cliente;
+          if (cliente) this.cargarMensualidad(cliente.id, version);
         },
         error: (error) => {
           this.querying.set(false);

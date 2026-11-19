@@ -13,6 +13,8 @@ const PREFIJOS_API = [
   '/puertas',
   '/reportes',
   '/vehiculos',
+  '/pagos',
+  '/tarifas',
   '/health',
 ];
 const LOGIN = '/api/v1/auth/login';

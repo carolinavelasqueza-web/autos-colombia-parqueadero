@@ -299,6 +299,12 @@
       <div class="notice" role="status">
         <strong>{{ state.vehiculo.placa }} · {{ state.esta_dentro ? 'Dentro' : 'Fuera' }}</strong>
         <p>{{ state.vehiculo.marca }} · {{ state.vehiculo.color }}</p>
+        @if (vencimientoProximo(); as vence) {
+          <p class="notice warning mensualidad-alerta" role="alert">
+            <strong>Mensualidad por vencer.</strong>
+            La mensualidad del cliente vence el {{ vence }}. Recuérdale renovar el pago.
+          </p>
+        }
         @if (state.estancia; as stay) {
           <p>
             Celda {{ stay.celda.codigo }} · Entrada {{ fecha(stay.entrada) }} · Puerta

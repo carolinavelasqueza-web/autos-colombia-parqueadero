@@ -1,0 +1,345 @@
+<section class="wizard" aria-labelledby="pago-title">
+  <header class="heading">
+    <div>
+      <span class="eyebrow">MENSUALIDADES</span>
+      <h1 id="pago-title">Registrar pago</h1>
+      <p>Busca al cliente, define el periodo y confirma el pago.</p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="notice error" role="alert">{{ error() }}</p>
+  }
+
+  @if (resultado(); as pago) {
+    <section class="panel result recibo-print" aria-labelledby="resultado-title">
+      <span class="badge no-print">PAGO REGISTRADO</span>
+      <h2 id="resultado-title" class="no-print">Recibo {{ pago.numero_recibo }}</h2>
+
+      <article class="ticket" id="recibo-impreso">
+        <header class="ticket-head">
+          <span class="ticket-logo" aria-hidden="true">AC</span>
+          <div>
+            <strong class="ticket-brand">AUTOS COLOMBIA</strong>
+            <p class="ticket-subtitle">Recibo de pago de mensualidad</p>
+          </div>
+        </header>
+
+        <p class="ticket-code">{{ pago.numero_recibo }}</p>
+
+        <dl class="ticket-datos">
+          <div>
+            <dt>Cliente</dt>
+            <dd>{{ pago.cliente.nombre }}</dd>
+          </div>
+          <div>
+            <dt>Documento</dt>
+            <dd>{{ pago.cliente.documento }}</dd>
+          </div>
+          <div>
+            <dt>Fecha</dt>
+            <dd>{{ fechaPago(pago.fecha) }}</dd>
+          </div>
+          <div>
+            <dt>Periodo</dt>
+            <dd>{{ pago.periodo_desde }} a {{ pago.periodo_hasta }}</dd>
+          </div>
+          <div>
+            <dt>Método</dt>
+            <dd>{{ pago.metodo }}</dd>
+          </div>
+          @if (pago.referencia) {
+            <div>
+              <dt>Referencia</dt>
+              <dd>{{ pago.referencia }}</dd>
+            </div>
+          }
+          <div>
+            <dt>Meses</dt>
+            <dd>{{ pago.meses }}</dd>
+          </div>
+        </dl>
+
+        @if (pago.detalles.length) {
+          <table class="ticket-breakdown">
+            <caption class="sr-only">
+              Desglose por vehículo
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Placa</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (detalle of pago.detalles; track detalle.id) {
+                <tr>
+                  <th scope="row">{{ detalle.placa }}</th>
+                  <td>{{ detalle.tipo }}</td>
+                  <td class="amount-cell">{{ formatearMontoTexto(detalle.subtotal) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <div class="ticket-total">
+          <span>Total pagado</span>
+          <strong>{{ formatearMontoTexto(pago.monto) }}</strong>
+        </div>
+
+        @if (cambioPago() !== null) {
+          <dl class="ticket-cambio">
+            <div>
+              <dt>Efectivo recibido</dt>
+              <dd>{{ formatearMonto(montoRecibidoPago()!) }}</dd>
+            </div>
+            <div>
+              <dt>Cambio entregado</dt>
+              <dd>{{ formatearMonto(cambioPago()!) }}</dd>
+            </div>
+          </dl>
+        }
+
+        <p class="ticket-foot">Gracias por su pago.</p>
+      </article>
+
+      <div class="actions no-print">
+        <button id="imprimir-recibo" class="primary" type="button" (click)="imprimirRecibo()">
+          Imprimir Recibo
+        </button>
+        <button type="button" (click)="nuevoPago()">Registrar otro pago</button>
+      </div>
+    </section>
+  } @else {
+    <ol class="steps" aria-label="Pasos para registrar el pago">
+      <li [class.active]="paso() === 1" [class.done]="paso() > 1">
+        <span class="step-number">1</span>
+        <span>Buscar cliente</span>
+      </li>
+      <li [class.active]="paso() === 2" [class.done]="paso() > 2">
+        <span class="step-number">2</span>
+        <span>Datos del pago</span>
+      </li>
+      <li [class.active]="paso() === 3">
+        <span class="step-number">3</span>
+        <span>Confirmación</span>
+      </li>
+    </ol>
+
+    @if (paso() === 1) {
+      <section class="panel" aria-labelledby="buscar-title">
+        <h2 id="buscar-title">Paso 1 · Buscar cliente</h2>
+        <div class="field">
+          <label for="documento">Documento del cliente</label>
+          <input
+            id="documento"
+            type="text"
+            autocomplete="off"
+            [value]="documento()"
+            (input)="onDocumentoInput($event)"
+            [attr.aria-invalid]="!!error()"
+          />
+        </div>
+        <button class="primary" type="button" (click)="buscar()" [disabled]="buscando()">
+          {{ buscando() ? 'Buscando…' : 'Buscar' }}
+        </button>
+      </section>
+    }
+
+    @if (paso() === 2) {
+      <section class="panel" aria-labelledby="datos-title">
+        <h2 id="datos-title">Paso 2 · Datos del pago</h2>
+
+        @if (cliente(); as datos) {
+          <dl class="client-summary">
+            <div>
+              <dt>Cliente</dt>
+              <dd>{{ datos.nombre }}</dd>
+            </div>
+            <div>
+              <dt>Documento</dt>
+              <dd>{{ datos.documento }}</dd>
+            </div>
+            <div>
+              <dt>Vehículos del cliente</dt>
+              <dd>{{ vehiculos().length }}</dd>
+            </div>
+          </dl>
+        }
+
+        <fieldset class="vehiculos-fieldset" [disabled]="bloqueado()">
+          <legend>Vehículos a pagar</legend>
+          <p class="hint">
+            Marca los vehículos cuya mensualidad se va a cobrar. Debe quedar al menos uno.
+          </p>
+          <ul class="vehiculo-list">
+            @for (vehiculo of vehiculos(); track vehiculo.id) {
+              <li class="vehiculo-item" [class.off]="!vehiculo.seleccionado">
+                <label class="vehiculo-check">
+                  <input
+                    type="checkbox"
+                    [checked]="vehiculo.seleccionado"
+                    (change)="onVehiculoToggle(vehiculo.id, $event)"
+                    [attr.aria-label]="'Pagar ' + vehiculo.placa"
+                  />
+                  <span class="vehiculo-placa">{{ vehiculo.placa }}</span>
+                  <span class="vehiculo-tipo">{{ vehiculo.tipo }}</span>
+                </label>
+                <span class="vehiculo-tarifa">{{ formatearMonto(vehiculo.tarifa) }} / mes</span>
+              </li>
+            }
+          </ul>
+          @if (!haySeleccion()) {
+            <p class="notice error seleccion-error" role="alert">
+              Selecciona al menos un vehículo para pagar.
+            </p>
+          }
+        </fieldset>
+
+        <fieldset [disabled]="bloqueado()">
+          <legend class="sr-only">Datos del pago</legend>
+          <div class="form-grid">
+            <div class="field">
+              <label for="meses">Meses a pagar</label>
+              <select id="meses" [value]="meses()" (change)="onMesesChange($event)">
+                @for (numero of mesesDisponibles; track numero) {
+                  <option [value]="numero">{{ numero }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="metodo">Método de pago</label>
+              <select id="metodo" [value]="metodo()" (change)="onMetodoChange($event)">
+                @for (opcion of metodos; track opcion) {
+                  <option [value]="opcion">{{ opcion }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="referencia">Referencia</label>
+              <input
+                id="referencia"
+                type="text"
+                maxlength="100"
+                autocomplete="off"
+                [value]="referencia()"
+                (input)="onReferenciaInput($event)"
+                [disabled]="!referenciaRequerida()"
+                [required]="referenciaRequerida()"
+                aria-describedby="referencia-ayuda"
+              />
+              <span class="hint" id="referencia-ayuda">
+                @if (referenciaRequerida()) {
+                  Obligatoria, máximo 100 caracteres. Se guarda en mayúsculas.
+                } @else {
+                  No aplica para pagos en efectivo.
+                }
+              </span>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="total-box">
+          <span>Total a cobrar</span>
+          <strong class="total-amount">{{ totalTexto() }}</strong>
+          <span class="hint">
+            {{ seleccionados().length }} vehículo(s) · {{ meses() }} mes(es) de mensualidad
+          </span>
+        </div>
+
+        <div class="actions">
+          <button type="button" (click)="nuevoPago()" [disabled]="bloqueado()">
+            Volver a buscar
+          </button>
+          <button
+            type="button"
+            class="primary"
+            (click)="continuar()"
+            [disabled]="bloqueado() || !haySeleccion()"
+          >
+            Continuar
+          </button>
+        </div>
+      </section>
+    }
+
+    @if (paso() === 3) {
+      <section class="panel" aria-labelledby="confirmar-title">
+        <h2 id="confirmar-title">Paso 3 · Confirmación</h2>
+        <dl class="summary">
+          <div>
+            <dt>Cliente</dt>
+            <dd>{{ cliente()?.nombre }} · {{ cliente()?.documento }}</dd>
+          </div>
+          <div>
+            <dt>Meses</dt>
+            <dd>{{ meses() }}</dd>
+          </div>
+          <div>
+            <dt>Método</dt>
+            <dd>{{ metodo() }}</dd>
+          </div>
+          @if (referenciaRequerida()) {
+            <div>
+              <dt>Referencia</dt>
+              <dd>{{ referencia() }}</dd>
+            </div>
+          }
+          <div>
+            <dt>Total</dt>
+            <dd class="amount">{{ totalTexto() }}</dd>
+          </div>
+        </dl>
+
+        @if (esEfectivo()) {
+          <div class="cash-box">
+            <div class="field">
+              <label for="monto-recibido">Monto recibido (efectivo)</label>
+              <input
+                id="monto-recibido"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                step="1"
+                autocomplete="off"
+                [value]="montoRecibido() ?? ''"
+                (input)="onMontoRecibidoInput($event)"
+                [attr.aria-invalid]="montoRecibido() !== null && !efectivoSuficiente()"
+                aria-describedby="cambio-ayuda"
+              />
+            </div>
+            <div class="change-line" id="cambio-ayuda">
+              @if (montoRecibido() === null) {
+                <span class="hint">Ingresa el efectivo entregado para calcular el cambio.</span>
+              } @else if (!efectivoSuficiente()) {
+                <span class="change-error" role="alert">
+                  El monto recibido es menor al total a cobrar.
+                </span>
+              } @else {
+                <span>Cambio a devolver</span>
+                <strong id="cambio" class="change-amount">{{ cambioTexto() }}</strong>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="actions confirm-actions">
+          <button type="button" (click)="volver()" [disabled]="bloqueado()">Volver</button>
+          <button
+            id="confirmar"
+            type="button"
+            class="primary confirm"
+            (click)="confirmar()"
+            [disabled]="bloqueado() || !puedeConfirmar()"
+          >
+            {{ confirmando() ? 'Procesando...' : 'Confirmar Pago' }}
+          </button>
+        </div>
+      </section>
+    }
+  }
+</section>

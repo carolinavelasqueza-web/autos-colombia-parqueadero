@@ -17,27 +17,61 @@ a:focus-visible {
 
 /* La impresión del ficho oculta el resto de la aplicación. */
 @media print {
-  body {
-    background: #fff;
-  }
-  body * {
-    visibility: hidden;
-  }
-  .ficho-print,
-  .ficho-print * {
-    visibility: visible;
-  }
-  .ficho-print {
-    position: absolute;
-    inset: 0 auto auto 0;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-  }
-  .ficho-print .no-print {
-    display: none !important;
-  }
   @page {
-    margin: 12mm;
+    size: 80mm auto;
+    margin: 0;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+  }
+
+  /* Oculta todo visualmente sin romper jerarquías */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Muestra únicamente el ficho o el recibo y su contenido */
+  .ficho-print,
+  .ficho-print *,
+  .recibo-print,
+  .recibo-print * {
+    visibility: visible !important;
+  }
+
+  .ficho-print {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .recibo-print {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 76mm !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 4mm !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 0 !important;
+  }
+
+  /* Oculta botones y acciones dentro del ticket */
+  .no-print,
+  .ficho-print .no-print,
+  .recibo-print .no-print {
+    display: none !important;
+    visibility: hidden !important;
   }
 }

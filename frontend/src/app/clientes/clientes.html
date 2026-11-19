@@ -124,6 +124,16 @@
                   <span class="type-tag" [class.inactive]="!cliente.activo">{{
                     cliente.activo ? 'Activo' : 'Inactivo'
                   }}</span>
+                  @if (porVencer(cliente)) {
+                    <span
+                      class="warning-tag"
+                      role="alert"
+                      [attr.aria-label]="'Mensualidad por vencer el ' + vencimientoTexto(cliente)"
+                      [title]="'Mensualidad por vencer el ' + vencimientoTexto(cliente)"
+                    >
+                      Vence {{ vencimientoTexto(cliente) }}
+                    </span>
+                  }
                 </td>
                 <td class="row-actions">
                   <button

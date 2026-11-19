@@ -181,6 +181,14 @@ select {
   background: #fff0ec;
   color: #923b2e;
 }
+.warning {
+  background: #fdf5e3;
+  color: #7a5a12;
+  border: 1px solid #e7cf93;
+}
+.mensualidad-alerta {
+  margin: 12px 0 0;
+}
 .confirmation {
   border-color: #d4a899;
   background: #fffaf7;

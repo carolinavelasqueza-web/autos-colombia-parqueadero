@@ -111,6 +111,15 @@ describe('Control de acceso', () => {
       .flush({ items: [cliente], total: 1, offset: 0, limit: 100 });
   }
 
+  // Tras una consulta exitosa con cliente, el componente pide la mensualidad
+  // para avisar si está por vencer. Por defecto se responde AL_DIA (sin alerta).
+  function flushMensualidad(estado = 'AL_DIA', fechaVencimiento: string | null = null): void {
+    http.expectOne(`/clientes/${cliente.id}/mensualidad`).flush({
+      cliente: { ...cliente, fecha_vencimiento: fechaVencimiento },
+      estado,
+    });
+  }
+
   function flushEntrada(): void {
     c.entrada.controls.placa.setValue('TEST-A');
     c.entrada.controls.puerta_entrada_id.setValue(1);
@@ -183,7 +192,9 @@ describe('Control de acceso', () => {
     c.entrada.controls.placa.setValue('TEST-A');
     c.entrada.controls.puerta_entrada_id.setValue(1);
     for (const [status, detail] of [
-      [409, 'Vehículo no registrado o mensualidad vencida'],
+      [409, 'Vehículo no registrado.'],
+      [409, 'Cliente inactivo.'],
+      [409, 'Mensualidad vencida.'],
       [409, 'Sin celdas disponibles'],
       [409, 'El vehículo ya está dentro.'],
       [404, 'Vehículo no encontrado.'],
@@ -206,6 +217,8 @@ describe('Control de acceso', () => {
     c.consulta.controls.placa.setValue('TEST-A');
     c.buscar();
     http.expectOne('/estancias/vehiculo/TEST-A').flush(state);
+    // La consulta exitosa dispara la petición de mensualidad antes de cambiar de placa.
+    flushMensualidad();
     c.consulta.controls.placa.setValue('TEST-B');
     expect(c.estado()).toBeNull();
   });
@@ -214,6 +227,7 @@ describe('Control de acceso', () => {
     c.consulta.setValue({ placa: 'test-a' });
     c.buscar();
     http.expectOne('/estancias/vehiculo/TEST-A').flush(state);
+    flushMensualidad();
     c.salidaForm.setValue({ ficho_codigo: ' ac-20261019-0001 ', puerta_salida_id: 2 });
     c.registrarSalida();
     c.registrarSalida();
@@ -233,6 +247,7 @@ describe('Control de acceso', () => {
     http
       .expectOne('/estancias/vehiculo/TEST-A')
       .flush({ ...state, esta_dentro: false, estancia: null });
+    flushMensualidad();
     expect(c.estado()?.esta_dentro).toBe(false);
     expect(c.exitoSalida()).toContain('Salida registrada');
     expect(c.exitoSalida()).toContain('SUR');
@@ -242,6 +257,7 @@ describe('Control de acceso', () => {
     c.consulta.setValue({ placa: 'TEST-A' });
     c.buscar();
     http.expectOne('/estancias/vehiculo/TEST-A').flush(state);
+    flushMensualidad();
     c.salidaForm.setValue({ ficho_codigo: 'ABC', puerta_salida_id: 2 });
     c.registrarSalida();
     http.expectNone('/estancias/salida');
@@ -257,6 +273,7 @@ describe('Control de acceso', () => {
     c.consulta.setValue({ placa: 'TEST-A' });
     c.buscar();
     http.expectOne('/estancias/vehiculo/TEST-A').flush(state);
+    flushMensualidad();
     fixture.detectChanges();
 
     c.abrirReasignacion(state.estancia);
@@ -378,6 +395,7 @@ describe('Control de acceso', () => {
     expect(c.errorConsulta()).toContain('No se pudo conectar');
     c.buscar();
     http.expectOne('/estancias/vehiculo/TEST-A').flush(state);
+    flushMensualidad();
     c.salidaForm.setValue({ ficho_codigo: 'AC-20261019-0001', puerta_salida_id: 2 });
     c.registrarSalida();
     http
@@ -390,5 +408,40 @@ describe('Control de acceso', () => {
   it('interpreta el offset recibido y presenta el mismo instante en Bogotá', () => {
     expect(c.fecha('2026-10-19T15:00:00Z')).toBe(c.fecha('2026-10-19T10:00:00-05:00'));
     expect(c.fecha('2026-10-19T15:00:00Z')).toContain('10:00:00');
+  });
+
+  it('muestra la alerta amarilla cuando la mensualidad del cliente está por vencer', () => {
+    // Fecha de vencimiento dentro de 3 días respecto a hoy (Bogotá).
+    const hoyBogota = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Bogota',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    const vence = new Date(`${hoyBogota}T00:00:00Z`);
+    vence.setUTCDate(vence.getUTCDate() + 3);
+    const fechaVencimiento = vence.toISOString().slice(0, 10);
+
+    c.consulta.setValue({ placa: 'TEST-A' });
+    c.buscar();
+    http.expectOne('/estancias/vehiculo/TEST-A').flush(state);
+    flushMensualidad('POR_VENCER', fechaVencimiento);
+    fixture.detectChanges();
+
+    expect(c.vencimientoProximo()).not.toBeNull();
+    const alerta = (fixture.nativeElement as HTMLElement).querySelector('.mensualidad-alerta');
+    expect(alerta).not.toBeNull();
+    expect(alerta!.textContent).toContain('por vencer');
+  });
+
+  it('no muestra la alerta cuando la mensualidad está al día', () => {
+    c.consulta.setValue({ placa: 'TEST-A' });
+    c.buscar();
+    http.expectOne('/estancias/vehiculo/TEST-A').flush(state);
+    flushMensualidad('AL_DIA', null);
+    fixture.detectChanges();
+
+    expect(c.vencimientoProximo()).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.mensualidad-alerta')).toBeNull();
   });
 });

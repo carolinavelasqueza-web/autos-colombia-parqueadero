@@ -1,3 +1,4 @@
+from datetime import timedelta
 from functools import wraps
 
 from sqlalchemy import func, select
@@ -7,6 +8,11 @@ from sqlalchemy.orm import Session
 from app.models import Cliente, Operador
 from app.schemas.cliente import ClienteActualizar, ClienteCrear
 from app.services.auditoria import auditar, registrar_auditoria
+from app.services.mensualidad import (
+    DIAS_POR_VENCER,
+    estado_mensualidad,
+    hoy_bogota,
+)
 
 CAMPOS_AUDITADOS = ("documento", "nombre", "telefono", "correo", "activo")
 
@@ -90,6 +96,52 @@ def list_clientes(
 @database_operation
 def get_cliente(session: Session, cliente_id: int) -> Cliente:
     return find_cliente(session, cliente_id)
+
+
+@database_operation
+def get_mensualidad(session: Session, cliente_id: int) -> dict:
+    """Devuelve el cliente y su estado de mensualidad calculado hoy en Bogotá."""
+    cliente = find_cliente(session, cliente_id)
+    return {
+        "cliente": cliente,
+        "estado": estado_mensualidad(cliente.fecha_vencimiento, hoy_bogota()),
+    }
+
+
+@database_operation
+def listar_alertas(session: Session, offset: int, limit: int) -> dict:
+    """Lista clientes activos POR_VENCER o VENCIDA; excluye SIN_PAGO (nulo)."""
+    hoy = hoy_bogota()
+    limite = hoy + timedelta(days=DIAS_POR_VENCER)
+
+    condiciones = [
+        Cliente.activo.is_(True),
+        Cliente.fecha_vencimiento.is_not(None),
+        Cliente.fecha_vencimiento <= limite,
+    ]
+    query = select(Cliente).where(*condiciones)
+    count_query = select(func.count()).select_from(Cliente).where(*condiciones)
+
+    total = session.scalar(count_query)
+    clientes = list(
+        session.scalars(
+            query.order_by(Cliente.fecha_vencimiento.asc(), Cliente.id.asc())
+            .offset(offset)
+            .limit(limit)
+        )
+    )
+    return {
+        "items": [
+            {
+                "cliente": cliente,
+                "estado": estado_mensualidad(cliente.fecha_vencimiento, hoy),
+            }
+            for cliente in clientes
+        ],
+        "total": total,
+        "offset": offset,
+        "limit": limit,
+    }
 
 
 @database_operation(commit=True)

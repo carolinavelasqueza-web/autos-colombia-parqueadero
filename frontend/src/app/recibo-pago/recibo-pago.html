@@ -1,0 +1,167 @@
+<div class="overlay" (click)="solicitarCierre()">
+  <section
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="recibo-title"
+    (click)="$event.stopPropagation()"
+  >
+    @if (pago(); as recibo) {
+      <header class="modal-head">
+        <div>
+          <span class="eyebrow">RECIBO DE PAGO</span>
+          <h2 id="recibo-title">{{ recibo.numero_recibo }}</h2>
+        </div>
+        <button type="button" class="close" (click)="solicitarCierre()" [disabled]="anulando()">
+          Cerrar
+        </button>
+      </header>
+
+      <article class="ticket">
+        <header class="ticket-head">
+          <span class="ticket-logo" aria-hidden="true">AC</span>
+          <div>
+            <strong class="ticket-brand">AUTOS COLOMBIA</strong>
+            <p class="ticket-subtitle">Recibo de pago de mensualidad</p>
+          </div>
+          <span class="status" [class.anulado]="recibo.estado === 'ANULADO'">
+            {{ recibo.estado }}
+          </span>
+        </header>
+
+        <p class="ticket-code">{{ recibo.numero_recibo }}</p>
+
+        <dl class="detalle">
+          <div>
+            <dt>Cliente</dt>
+            <dd>{{ recibo.cliente.nombre }}</dd>
+          </div>
+          <div>
+            <dt>Documento</dt>
+            <dd>{{ recibo.cliente.documento }}</dd>
+          </div>
+          <div>
+            <dt>Fecha</dt>
+            <dd>{{ fecha(recibo.fecha) }}</dd>
+          </div>
+          <div>
+            <dt>Periodo</dt>
+            <dd>{{ recibo.periodo_desde }} a {{ recibo.periodo_hasta }}</dd>
+          </div>
+          <div>
+            <dt>Método</dt>
+            <dd>{{ recibo.metodo }}</dd>
+          </div>
+          <div>
+            <dt>Referencia</dt>
+            <dd>{{ recibo.referencia ?? 'No aplica' }}</dd>
+          </div>
+          <div>
+            <dt>Meses pagados</dt>
+            <dd>{{ recibo.meses }}</dd>
+          </div>
+        </dl>
+
+        <table class="breakdown">
+          <caption class="sr-only">
+            Desglose por vehículo
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Placa</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Tarifa</th>
+              <th scope="col">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (detalle of recibo.detalles; track detalle.id) {
+              <tr>
+                <th scope="row">{{ detalle.placa }}</th>
+                <td>{{ detalle.tipo }}</td>
+                <td class="amount">{{ formatearMonto(detalle.tarifa_aplicada) }}</td>
+                <td class="amount">{{ formatearMonto(detalle.subtotal) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="total-line">
+          <span>Total pagado</span>
+          <strong>{{ formatearMonto(recibo.monto) }}</strong>
+        </div>
+
+        @if (recibo.estado === 'ANULADO') {
+          <div class="annulled">
+            <strong>Pago anulado</strong>
+            <p>{{ recibo.motivo ?? 'Sin motivo registrado.' }}</p>
+            @if (recibo.anulado_en) {
+              <p>Anulado en {{ fecha(recibo.anulado_en) }}</p>
+            }
+          </div>
+        }
+      </article>
+
+      @if (mensaje()) {
+        <p class="notice success" role="status">{{ mensaje() }}</p>
+      }
+      @if (anulacionError() && !confirmandoAnulacion()) {
+        <p class="notice error" role="alert">{{ anulacionError() }}</p>
+      }
+
+      <div class="modal-actions">
+        @if (auth.esAdministrador() && recibo.estado === 'VIGENTE') {
+          <button
+            id="anular-pago"
+            type="button"
+            class="danger"
+            (click)="abrirAnulacion()"
+            [disabled]="anulando() || confirmandoAnulacion()"
+          >
+            Anular Pago
+          </button>
+        }
+        <button type="button" class="plain" (click)="solicitarCierre()" [disabled]="anulando()">
+          Cerrar
+        </button>
+      </div>
+
+      @if (confirmandoAnulacion()) {
+        <section class="anulacion" role="alertdialog" aria-labelledby="anular-title">
+          <h3 id="anular-title">Confirmar anulación del pago</h3>
+          <p>
+            Esta acción anulará el pago y revertirá la vigencia del cliente. No se puede deshacer.
+          </p>
+          <div class="field">
+            <label for="motivo-anulacion">Motivo de la anulación</label>
+            <textarea
+              id="motivo-anulacion"
+              rows="3"
+              maxlength="500"
+              [value]="motivo()"
+              (input)="onMotivoInput($event)"
+              [disabled]="anulando()"
+            ></textarea>
+          </div>
+          @if (anulacionError()) {
+            <p class="notice error" role="alert">{{ anulacionError() }}</p>
+          }
+          <div class="actions">
+            <button
+              id="confirmar-anulacion"
+              type="button"
+              class="danger"
+              (click)="anular()"
+              [disabled]="anulando()"
+            >
+              {{ anulando() ? 'Anulando…' : 'Confirmar anulación' }}
+            </button>
+            <button type="button" class="plain" (click)="cancelarAnulacion()" [disabled]="anulando()">
+              Cancelar
+            </button>
+          </div>
+        </section>
+      }
+    }
+  </section>
+</div>

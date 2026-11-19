@@ -34,6 +34,27 @@ export const routes: Routes = [
           import('./vehiculos-dentro/vehiculos-dentro').then((m) => m.VehiculosDentro),
       },
       {
+        path: 'gestion/tarifas',
+        title: 'Tarifas | Autos Colombia',
+        canActivate: [roleGuard(['ADMINISTRADOR'])],
+        loadComponent: () =>
+          import('./gestion-tarifas/gestion-tarifas').then((m) => m.GestionTarifas),
+      },
+      {
+        path: 'gestion/pagos',
+        title: 'Pagos | Autos Colombia',
+        canActivate: [roleGuard(['ADMINISTRADOR', 'OPERADOR'])],
+        loadComponent: () =>
+          import('./listado-pagos/listado-pagos').then((m) => m.ListadoPagos),
+      },
+      {
+        path: 'gestion/pagos/nuevo',
+        title: 'Registrar pago | Autos Colombia',
+        canActivate: [roleGuard(['ADMINISTRADOR', 'OPERADOR'])],
+        loadComponent: () =>
+          import('./registrar-pago/registrar-pago').then((m) => m.RegistrarPago),
+      },
+      {
         path: 'gestion/reportes',
         title: 'Reportes | Autos Colombia',
         canActivate: [roleGuard(['ADMINISTRADOR'])],

@@ -1,7 +1,7 @@
 """Concurrencia real: datos nuevos confirmados, limpieza exclusiva por sus ids."""
 import re
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import os
 from threading import Barrier, Lock
 from uuid import uuid4
@@ -36,8 +36,8 @@ def datos():
     engine = get_engine()
     with engine.connect() as c:
         assert c.scalar(text('SELECT current_database()')) == 'autos_colombia'
-        # Las pruebas de estancias requieren la revisión 0009 (sesiones e índices).
-        assert c.scalar(text('SELECT version_num FROM alembic_version')) == '0009'
+        # Las pruebas de estancias requieren la revisión 0010 (fecha de vencimiento).
+        assert c.scalar(text('SELECT version_num FROM alembic_version')) == '0010'
     token = 'TEST-EST-' + uuid4().hex.upper()
     with Session(engine) as s, s.begin():
         clientes = [
@@ -47,8 +47,9 @@ def datos():
                 telefono='001',
                 correo=f'cliente{n}@example.com',
                 activo=n != 2,
+                fecha_vencimiento=date(2020, 1, 1) if n == 3 else date(2099, 12, 31),
             )
-            for n in range(3)
+            for n in range(4)
         ]
         s.add_all(clientes)
         s.flush()
@@ -59,9 +60,9 @@ def datos():
                 modelo=2026,
                 marca='Prueba',
                 tipo='MOTO',
-                cliente_id=clientes[n].id if n < 2 else clientes[2].id,
+                cliente_id=clientes[n].id,
             )
-            for n in range(3)
+            for n in range(4)
         ]
         # Dos celdas para las motos y una celda de automóvil para las validaciones.
         cells = [Celda(codigo=f'{token}-{n}', tipo='MOTO') for n in range(2)]
@@ -238,10 +239,15 @@ def test_recorrido_y_rechazos_sin_cambios_parciales(datos, actor):
         # Un segundo intento del mismo vehículo se rechaza sin ocupar otra celda.
         assert client.post('/estancias/entrada', json=entrada(d)).status_code == 409
         assert cantidad(d) == 1
-        # El cliente inactivo se bloquea en la entrada aunque el vehículo exista.
-        vencida = client.post('/estancias/entrada', json=entrada(d, v=2))
+        # El cliente inactivo se bloquea antes que la mensualidad.
+        inactiva = client.post('/estancias/entrada', json=entrada(d, v=2))
+        assert inactiva.status_code == 409
+        assert inactiva.json() == {'detail': 'Cliente inactivo.'}
+        assert cantidad(d) == 1
+        # Un cliente activo con mensualidad vencida tampoco puede entrar.
+        vencida = client.post('/estancias/entrada', json=entrada(d, v=3))
         assert vencida.status_code == 409
-        assert vencida.json() == {'detail': 'Vehículo no registrado o mensualidad vencida'}
+        assert vencida.json() == {'detail': 'Mensualidad vencida.'}
         assert cantidad(d) == 1
         second = client.post('/estancias/entrada', json=entrada(d, v=1))
         assert second.status_code == 201

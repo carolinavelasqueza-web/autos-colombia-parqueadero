@@ -22,6 +22,9 @@ from app.routers.estancias import router as estancias_router
 from app.services.estancia import EstanciaError
 from app.routers.puertas import router as puertas_router
 from app.routers.reportes import router as reportes_router
+from app.routers.tarifas import router as tarifas_router
+from app.routers.pagos import router as pagos_router
+from app.services.pago import PagoError
 from app.services.reporte import ReporteError
 
 logger = logging.getLogger(__name__)
@@ -54,6 +57,8 @@ app.include_router(clientes_router)
 app.include_router(estancias_router)
 app.include_router(puertas_router)
 app.include_router(reportes_router)
+app.include_router(tarifas_router)
+app.include_router(pagos_router)
 
 
 @app.exception_handler(VehiculoError)
@@ -62,7 +67,8 @@ app.include_router(reportes_router)
 @app.exception_handler(ClienteError)
 @app.exception_handler(EstanciaError)
 @app.exception_handler(ReporteError)
-async def entity_error_handler(request, error: VehiculoError | CeldaError | OperadorError | ClienteError | EstanciaError | ReporteError) -> JSONResponse:
+@app.exception_handler(PagoError)
+async def entity_error_handler(request, error: VehiculoError | CeldaError | OperadorError | ClienteError | EstanciaError | ReporteError | PagoError) -> JSONResponse:
     return JSONResponse(status_code=error.status_code, content={"detail": error.detail})
 
 

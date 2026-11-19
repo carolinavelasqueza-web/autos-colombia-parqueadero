@@ -26,6 +26,19 @@
         >Clientes</a
       >
 
+      <!-- Registro de pagos visible para OPERADOR y ADMINISTRADOR -->
+      <a
+        routerLink="/gestion/pagos/nuevo"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        >Registrar pago</a
+      >
+
+      <!-- Listado de pagos visible para OPERADOR y ADMINISTRADOR -->
+      <a routerLink="/gestion/pagos" routerLinkActive="active" ariaCurrentWhenActive="page"
+        >Pagos</a
+      >
+
       @if (auth.esAdministrador()) {
         <a routerLink="/gestion/vehiculos" routerLinkActive="active" ariaCurrentWhenActive="page"
           >Vehículos</a
@@ -35,6 +48,9 @@
         >
         <a routerLink="/gestion/celdas" routerLinkActive="active" ariaCurrentWhenActive="page"
           >Celdas</a
+        >
+        <a routerLink="/gestion/tarifas" routerLinkActive="active" ariaCurrentWhenActive="page"
+          >Tarifas</a
         >
         <a routerLink="/gestion/reportes" routerLinkActive="active" ariaCurrentWhenActive="page"
           >Reportes</a

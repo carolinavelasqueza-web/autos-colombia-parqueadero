@@ -2,6 +2,9 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
+from app.schemas.pago import MetodoPago
+from app.schemas.tarifa import MontoTexto
+
 
 class OcupacionFamilia(BaseModel):
     familia: str
@@ -32,3 +35,17 @@ class ReporteOcupacionRespuesta(BaseModel):
     permanencia_promedio_minutos: float = Field(ge=0)
     por_tipo: list[OcupacionFamilia]
     historico: list[DiaOcupacion]
+
+
+class RecaudoPorMetodo(BaseModel):
+    metodo: MetodoPago
+    pagos: int = Field(ge=0)
+    total: MontoTexto
+
+
+class ReporteRecaudoRespuesta(BaseModel):
+    desde: date
+    hasta: date
+    pagos: int = Field(ge=0)
+    total: MontoTexto
+    por_metodo: list[RecaudoPorMetodo]

@@ -20,6 +20,7 @@ from app.schemas.vehiculo import VehiculoRespuesta
 from app.services.auditoria import auditar, registrar_auditoria
 from app.services.celda import celdas_libres_para
 from app.services.ficho import FichoAgotado, generar_ficho
+from app.services.mensualidad import SIN_PAGO, VENCIDA, estado_mensualidad
 from app.tipos import (
     FAMILIA_POR_TIPO,
     MENSAJE_TIPO_INCOMPATIBLE,
@@ -98,6 +99,16 @@ class ServicioEstancia:
             raise EstanciaError(404, "Vehículo no encontrado.")
         return vehiculo
 
+    def _validar_mensualidad(self, vehiculo: Vehiculo) -> None:
+        """Exige cliente activo y mensualidad no vencida para registrar la entrada."""
+        cliente = vehiculo.cliente
+        if cliente is None:
+            raise EstanciaError(409, "Vehículo no registrado.")
+        if cliente.activo is not True:
+            raise EstanciaError(409, "Cliente inactivo.")
+        if estado_mensualidad(cliente.fecha_vencimiento) in {VENCIDA, SIN_PAGO}:
+            raise EstanciaError(409, "Mensualidad vencida.")
+
     def _puerta(self, puerta_id: int) -> Puerta:
         puerta = self.session.get(Puerta, puerta_id)
         if puerta is None:
@@ -169,8 +180,7 @@ class ServicioEstancia:
     def entrada(self, data: EntradaCrear, operador: Operador) -> EstanciaAbiertaRespuesta:
         puerta = self._puerta(data.puerta_entrada_id)
         vehiculo = self._vehiculo(data.placa)
-        if vehiculo.cliente is None or vehiculo.cliente.activo is not True:
-            raise EstanciaError(409, "Vehículo no registrado o mensualidad vencida")
+        self._validar_mensualidad(vehiculo)
         if self.session.scalar(select(Estancia.id).where(
             Estancia.vehiculo_id == vehiculo.id, Estancia.salida.is_(None)
         )) is not None:

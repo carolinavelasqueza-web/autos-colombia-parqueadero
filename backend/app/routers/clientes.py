@@ -9,7 +9,9 @@ from app.schemas.cliente import (
     ClienteActualizar,
     ClienteCrear,
     ClienteRespuesta,
+    ClientesMensualidadPagina,
     ClientesPagina,
+    MensualidadRespuesta,
 )
 from app.security import CurrentUser, require_role
 from app.services import cliente as service
@@ -40,6 +42,21 @@ def list_all(
     activo: Annotated[bool | None, Query()] = None,
 ):
     return service.list_clientes(session, offset, limit, activo)
+
+
+@router.get("/mensualidad/alertas", response_model=ClientesMensualidadPagina)
+def alertas(
+    session: DatabaseSession,
+    actor: CurrentUser,
+    offset: Annotated[int, Query(ge=0, le=9223372036854775807)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+):
+    return service.listar_alertas(session, offset, limit)
+
+
+@router.get("/{id}/mensualidad", response_model=MensualidadRespuesta)
+def mensualidad(id: ClienteId, session: DatabaseSession, actor: CurrentUser):
+    return service.get_mensualidad(session, id)
 
 
 @router.get("/{id}", response_model=ClienteRespuesta)

@@ -1,10 +1,11 @@
 """Modelos iniciales. Importar este módulo no crea tablas ni abre conexiones."""
 
 import re
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, DateTime, ForeignKey, Identity, Index, Integer, Text, UniqueConstraint, func, text
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, DateTime, ForeignKey, Identity, Index, Integer, Numeric, Text, UniqueConstraint, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, validates
 
@@ -15,6 +16,13 @@ USUARIO_RE = re.compile(r"^[a-z0-9._-]{3,50}$")
 CORREO_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 FICHO_RE = re.compile(r"^AC-\d{8}-\d{4}$")
 TOKEN_HASH_RE = re.compile(r"^[0-9a-f]{64}$")
+RECIBO_RE = re.compile(r"^RC-\d{6}$")
+TIPOS_TARIFA = frozenset({"MOTO", "AUTOMOVIL", "CAMIONETA"})
+METODOS_PAGO = frozenset({"EFECTIVO", "TRANSFERENCIA", "TARJETA"})
+ESTADOS_PAGO = frozenset({"VIGENTE", "ANULADO"})
+MAX_REFERENCIA_PAGO = 100
+MAX_MOTIVO_ANULACION = 500
+MAX_MONTO = Decimal("10000000000")
 
 
 class Base(DeclarativeBase):
@@ -66,6 +74,43 @@ def normalize_ficho(value: str | None) -> str | None:
     return value
 
 
+def validate_money(value: Decimal | int | str, attribute: str) -> Decimal:
+    """Valida montos NUMERIC(12,2) positivos sin aceptar float."""
+    if isinstance(value, bool) or isinstance(value, float):
+        raise ValueError(f"{attribute} debe ser un Decimal, no un float.")
+    if not isinstance(value, (Decimal, int, str)):
+        raise ValueError(f"{attribute} debe ser un valor decimal.")
+    try:
+        amount = value if isinstance(value, Decimal) else Decimal(value)
+    except (InvalidOperation, ValueError) as error:
+        raise ValueError(f"{attribute} debe ser un valor decimal válido.") from error
+    if not amount.is_finite():
+        raise ValueError(f"{attribute} debe ser un valor decimal finito.")
+    if amount.as_tuple().exponent < -2:
+        raise ValueError(f"{attribute} admite como máximo dos decimales.")
+    if amount <= 0:
+        raise ValueError(f"{attribute} debe ser mayor que cero.")
+    if amount >= MAX_MONTO:
+        raise ValueError(f"{attribute} supera el máximo permitido.")
+    return amount
+
+
+def validate_date_value(value: date | None, attribute: str) -> date | None:
+    if value is None:
+        return None
+    if type(value) is not date:
+        raise ValueError(f"{attribute} debe ser una fecha.")
+    return value
+
+
+def validate_timezone_datetime(value: datetime | None, attribute: str) -> datetime | None:
+    if value is None:
+        return None
+    if not isinstance(value, datetime) or value.utcoffset() is None:
+        raise ValueError(f"{attribute} debe incluir zona horaria.")
+    return value
+
+
 class Cliente(Base):
     __tablename__ = "cliente"
     __table_args__ = (
@@ -88,6 +133,7 @@ class Cliente(Base):
     activo: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default=text("true")
     )
+    fecha_vencimiento: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     vehiculos: Mapped[list["Vehiculo"]] = relationship(back_populates="cliente")
 
@@ -104,6 +150,10 @@ class Cliente(Base):
         if type(value) is not bool:
             raise ValueError("activo debe ser un booleano.")
         return value
+
+    @validates("fecha_vencimiento")
+    def validate_fecha_vencimiento(self, key: str, value: date | None) -> date | None:
+        return validate_date_value(value, key)
 
 
 class Vehiculo(Base):
@@ -255,6 +305,277 @@ class Operador(Base):
         if type(value) is not bool:
             raise ValueError("activo debe ser un booleano.")
         return value
+
+
+class Tarifa(Base):
+    __tablename__ = "tarifa"
+    __table_args__ = (
+        CheckConstraint(
+            "tipo IN ('MOTO', 'AUTOMOVIL', 'CAMIONETA')", name="ck_tarifa_tipo"
+        ),
+        CheckConstraint("valor > 0", name="ck_tarifa_valor_positivo"),
+        CheckConstraint(
+            "vigente_hasta IS NULL OR vigente_hasta > vigente_desde",
+            name="ck_tarifa_vigencia",
+        ),
+        Index(
+            "uq_tarifa_vigente",
+            "tipo",
+            unique=True,
+            postgresql_where=text("vigente_hasta IS NULL"),
+        ),
+        Index("ix_tarifa_tipo_desde", "tipo", "vigente_desde"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    tipo: Mapped[str] = mapped_column(Text, nullable=False)
+    valor: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    vigente_desde: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    vigente_hasta: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    @validates("tipo")
+    def validate_tipo(self, key: str, value: str) -> str:
+        value = required_text(value, key)
+        if value not in TIPOS_TARIFA:
+            raise ValueError("tipo debe ser MOTO, AUTOMOVIL o CAMIONETA.")
+        return value
+
+    @validates("valor")
+    def validate_valor(self, key: str, value: Decimal | int | str) -> Decimal:
+        return validate_money(value, key)
+
+    @validates("vigente_desde", "vigente_hasta")
+    def validate_vigencia(self, key: str, value: datetime | None) -> datetime | None:
+        return validate_timezone_datetime(value, key)
+
+
+class Pago(Base):
+    __tablename__ = "pago"
+    __table_args__ = (
+        CheckConstraint("meses BETWEEN 1 AND 12", name="ck_pago_meses"),
+        CheckConstraint(
+            "metodo IN ('EFECTIVO', 'TRANSFERENCIA', 'TARJETA')", name="ck_pago_metodo"
+        ),
+        CheckConstraint("estado IN ('VIGENTE', 'ANULADO')", name="ck_pago_estado"),
+        CheckConstraint("monto > 0", name="ck_pago_monto_positivo"),
+        CheckConstraint(
+            "numero_recibo ~ '^RC-[0-9]{6}$'", name="ck_pago_recibo_formato"
+        ),
+        CheckConstraint("periodo_hasta >= periodo_desde", name="ck_pago_periodo"),
+        CheckConstraint(
+            "((metodo = 'EFECTIVO') AND referencia IS NULL) OR "
+            "((metodo <> 'EFECTIVO') AND referencia IS NOT NULL)",
+            name="ck_pago_referencia_metodo",
+        ),
+        CheckConstraint(
+            "referencia IS NULL OR "
+            "(referencia ~ '[^[:space:]]' AND char_length(referencia) <= 100)",
+            name="ck_pago_referencia_texto",
+        ),
+        CheckConstraint(
+            "(estado = 'ANULADO') = (motivo IS NOT NULL AND anulado_por IS NOT NULL "
+            "AND anulado_en IS NOT NULL)",
+            name="ck_pago_anulacion_completa",
+        ),
+        CheckConstraint(
+            "motivo IS NULL OR "
+            "(motivo ~ '[^[:space:]]' AND char_length(motivo) <= 500)",
+            name="ck_pago_motivo",
+        ),
+        UniqueConstraint("numero_recibo", name="uq_pago_numero_recibo"),
+        Index(
+            "uq_pago_referencia_vigente",
+            "referencia",
+            unique=True,
+            postgresql_where=text("estado = 'VIGENTE' AND referencia IS NOT NULL"),
+        ),
+        Index("ix_pago_cliente_fecha", "cliente_id", "fecha"),
+        Index("ix_pago_estado_fecha", "estado", "fecha"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    cliente_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("cliente.id", name="fk_pago_cliente", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    meses: Mapped[int] = mapped_column(Integer, nullable=False)
+    metodo: Mapped[str] = mapped_column(Text, nullable=False)
+    referencia: Mapped[str | None] = mapped_column(Text, nullable=True)
+    monto: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    estado: Mapped[str] = mapped_column(
+        Text, nullable=False, default="VIGENTE", server_default=text("'VIGENTE'")
+    )
+    numero_recibo: Mapped[str] = mapped_column(Text, nullable=False)
+    periodo_desde: Mapped[date] = mapped_column(Date, nullable=False)
+    periodo_hasta: Mapped[date] = mapped_column(Date, nullable=False)
+    vencimiento_anterior: Mapped[date | None] = mapped_column(Date, nullable=True)
+    reactivo_cliente: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false")
+    )
+    operador_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("operador.id", name="fk_pago_operador", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    fecha: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    motivo: Mapped[str | None] = mapped_column(Text, nullable=True)
+    anulado_por: Mapped[int | None] = mapped_column(
+        BigInteger,
+        ForeignKey("operador.id", name="fk_pago_anulado_por", ondelete="RESTRICT"),
+        nullable=True,
+    )
+    anulado_en: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    cliente: Mapped[Cliente] = relationship()
+    operador: Mapped[Operador] = relationship(foreign_keys=[operador_id])
+    operador_anulacion: Mapped[Operador | None] = relationship(
+        foreign_keys=[anulado_por]
+    )
+    detalles: Mapped[list["PagoDetalle"]] = relationship(back_populates="pago")
+
+    @validates("meses")
+    def validate_meses(self, key: str, value: int) -> int:
+        if type(value) is not int or not 1 <= value <= 12:
+            raise ValueError("meses debe ser un entero entre 1 y 12.")
+        return value
+
+    @validates("metodo")
+    def validate_metodo(self, key: str, value: str) -> str:
+        value = required_text(value, key)
+        if value not in METODOS_PAGO:
+            raise ValueError("metodo debe ser EFECTIVO, TRANSFERENCIA o TARJETA.")
+        return value
+
+    @validates("referencia")
+    def validate_referencia(self, key: str, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise ValueError("referencia debe ser texto.")
+        value = value.strip().upper()
+        if not value:
+            return None
+        if len(value) > MAX_REFERENCIA_PAGO:
+            raise ValueError("referencia no puede superar 100 caracteres.")
+        return value
+
+    @validates("monto")
+    def validate_monto(self, key: str, value: Decimal | int | str) -> Decimal:
+        return validate_money(value, key)
+
+    @validates("estado")
+    def validate_estado(self, key: str, value: str) -> str:
+        value = required_text(value, key)
+        if value not in ESTADOS_PAGO:
+            raise ValueError("estado debe ser VIGENTE o ANULADO.")
+        return value
+
+    @validates("numero_recibo")
+    def validate_numero_recibo(self, key: str, value: str) -> str:
+        value = required_text(value, key)
+        if not RECIBO_RE.fullmatch(value):
+            raise ValueError("numero_recibo debe tener el formato RC-000001.")
+        return value
+
+    @validates("periodo_desde", "periodo_hasta", "vencimiento_anterior")
+    def validate_fechas(self, key: str, value: date | None) -> date | None:
+        return validate_date_value(value, key)
+
+    @validates("reactivo_cliente")
+    def validate_reactivo_cliente(self, key: str, value: bool) -> bool:
+        if type(value) is not bool:
+            raise ValueError("reactivo_cliente debe ser un booleano.")
+        return value
+
+    @validates("fecha", "anulado_en")
+    def validate_fecha_hora(self, key: str, value: datetime | None) -> datetime | None:
+        return validate_timezone_datetime(value, key)
+
+    @validates("motivo")
+    def validate_motivo(self, key: str, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise ValueError("motivo debe ser texto.")
+        value = value.strip()
+        if not value:
+            return None
+        if len(value) > MAX_MOTIVO_ANULACION:
+            raise ValueError("motivo no puede superar 500 caracteres.")
+        return value
+
+    @validates("anulado_por")
+    def validate_anulado_por(self, key: str, value: int | None) -> int | None:
+        if value is None:
+            return None
+        if type(value) is not int or value <= 0:
+            raise ValueError("anulado_por debe ser un identificador válido.")
+        return value
+
+
+class PagoDetalle(Base):
+    __tablename__ = "pago_detalle"
+    __table_args__ = (
+        CheckConstraint(
+            "tipo IN ('MOTO', 'AUTOMOVIL', 'CAMIONETA')", name="ck_pago_detalle_tipo"
+        ),
+        CheckConstraint(
+            "tarifa_aplicada > 0", name="ck_pago_detalle_tarifa_positiva"
+        ),
+        CheckConstraint("subtotal > 0", name="ck_pago_detalle_subtotal_positivo"),
+        CheckConstraint("placa ~ '[^[:space:]]'", name="ck_pago_detalle_placa_no_vacia"),
+        CheckConstraint(
+            "placa = upper(regexp_replace(placa, '^[[:space:]]+|[[:space:]]+$', '', 'g'))",
+            name="ck_pago_detalle_placa_normalizada",
+        ),
+        UniqueConstraint(
+            "pago_id", "vehiculo_id", name="uq_pago_detalle_vehiculo"
+        ),
+        Index("ix_pago_detalle_pago", "pago_id"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    pago_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("pago.id", name="fk_pago_detalle_pago", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    vehiculo_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("vehiculo.id", name="fk_pago_detalle_vehiculo", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    placa: Mapped[str] = mapped_column(Text, nullable=False)
+    tipo: Mapped[str] = mapped_column(Text, nullable=False)
+    tarifa_aplicada: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    subtotal: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+
+    pago: Mapped[Pago] = relationship(back_populates="detalles")
+    vehiculo: Mapped[Vehiculo] = relationship()
+
+    @validates("placa")
+    def validate_placa(self, key: str, value: str) -> str:
+        return required_text(value, key).upper()
+
+    @validates("tipo")
+    def validate_tipo(self, key: str, value: str) -> str:
+        value = required_text(value, key)
+        if value not in TIPOS_TARIFA:
+            raise ValueError("tipo debe ser MOTO, AUTOMOVIL o CAMIONETA.")
+        return value
+
+    @validates("tarifa_aplicada", "subtotal")
+    def validate_montos(self, key: str, value: Decimal | int | str) -> Decimal:
+        return validate_money(value, key)
 
 
 class Auditoria(Base):

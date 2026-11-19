@@ -1,0 +1,45 @@
+.overlay{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:24px;background:rgb(25 43 36/55%)}
+.modal{width:min(680px,100%);max-height:calc(100vh - 48px);overflow-y:auto;padding:26px;border-radius:16px;background:#fff;box-shadow:0 24px 70px rgb(13 29 23/30%)}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.eyebrow{font-size:11px;letter-spacing:2px;color:#526c60;font-weight:700}
+h2{margin:6px 0 0;font-size:24px;color:#203a33;font-family:Consolas,'Courier New',monospace}
+h3{margin:0 0 6px;font-size:16px;color:#923b2e}
+p{color:#586b60;line-height:1.6}
+button{font:inherit;padding:9px 13px;border:1px solid #c9d7ce;border-radius:8px;color:#214c43;background:#fff;cursor:pointer;font-size:14px}
+button:hover:not(:disabled){background:#eef3ee}
+button.danger{background:#a03930;color:#fff;border-color:#a03930}
+button.danger:hover:not(:disabled){background:#86291f}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,textarea:focus-visible{outline:3px solid #aa7b2e;outline-offset:3px}
+.close{padding:7px 11px}
+.ticket{padding:22px;border:2px dashed #9fb3a6;border-radius:12px;color:#203a33}
+.ticket-head{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid #dce2dc}
+.ticket-logo{display:grid;place-items:center;width:42px;height:42px;border-radius:10px;background:#214c43;color:#fff;font-weight:700;flex:none}
+.ticket-brand{font-size:14px;letter-spacing:2px}
+.ticket-subtitle{margin:3px 0 0;font-size:12px}
+.status{margin-left:auto;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:1px;background:#e6f1e8;color:#246044;white-space:nowrap}
+.status.anulado{background:#fbeee9;color:#923b2e}
+.ticket-code{margin:16px 0;font-family:Consolas,'Courier New',monospace;font-size:26px;font-weight:700;text-align:center}
+.detalle{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px;margin:0 0 18px}
+dt{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#526c60;font-weight:700}
+dd{margin:4px 0 0;font-size:14px;overflow-wrap:anywhere}
+.breakdown{width:100%;border-collapse:collapse;text-align:left;font-size:13px}
+.breakdown th,.breakdown td{padding:9px 8px;border-bottom:1px solid #e6ebe5;white-space:nowrap}
+.breakdown thead th{color:#5d7063;background:#f6f8f4}
+.breakdown tbody th{font-weight:700}
+.amount{font-variant-numeric:tabular-nums;font-weight:600}
+.total-line{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid #dce2dc;color:#3a4d43}
+.total-line strong{font-size:28px;letter-spacing:-1px;color:#214c43;font-variant-numeric:tabular-nums}
+.annulled{margin-top:16px;padding:12px 14px;border-radius:10px;background:#fbeee9;color:#923b2e}
+.annulled p{margin:4px 0 0;color:#923b2e;font-size:13px}
+.notice{padding:13px 16px;border-radius:10px;font-size:14px}
+.success{background:#e6f1e8;color:#246044}
+.error{background:#fff0ec;color:#923b2e}
+.modal-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;justify-content:flex-end}
+.anulacion{margin-top:18px;padding:16px;border:1px solid #ecc7c0;border-radius:12px;background:#fff7f4}
+.anulacion .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.field{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+label{font-size:13px;font-weight:700;color:#3a4d43}
+textarea{font:inherit;padding:10px 12px;border:1px solid #b9c9bd;border-radius:8px;background:#fff;color:#203a33;width:100%;resize:vertical}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(max-width:760px){.modal{padding:18px}.detalle{grid-template-columns:1fr}}

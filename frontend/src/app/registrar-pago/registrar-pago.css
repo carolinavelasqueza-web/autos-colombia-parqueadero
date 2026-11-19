@@ -1,0 +1,505 @@
+.wizard {
+  padding: 44px 0 60px;
+  max-width: 860px;
+}
+.heading {
+  margin-bottom: 26px;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #526c60;
+  font-weight: 700;
+}
+h1 {
+  margin: 12px 0;
+  font-size: 36px;
+  letter-spacing: -1px;
+}
+h2 {
+  font-size: 19px;
+  margin: 0 0 18px;
+}
+p {
+  color: #586b60;
+  line-height: 1.6;
+}
+.panel {
+  padding: 26px;
+  border: 1px solid #dce2dc;
+  background: #fff;
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 22px;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid #dce2dc;
+  border-radius: 10px;
+  color: #6c7c72;
+  background: #f7f9f6;
+  font-size: 13px;
+  font-weight: 600;
+}
+.steps li.active {
+  border-color: #214c43;
+  color: #214c43;
+  background: #eaf1ec;
+}
+.steps li.done {
+  color: #246044;
+  background: #e6f1e8;
+}
+.step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #214c43;
+  color: #fff;
+  font-size: 12px;
+  flex: none;
+}
+.steps li:not(.active):not(.done) .step-number {
+  background: #b7c5bb;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+  max-width: 360px;
+}
+label,
+dt {
+  font-size: 13px;
+  font-weight: 700;
+  color: #3a4d43;
+}
+input,
+select {
+  font: inherit;
+  padding: 11px 12px;
+  border: 1px solid #b9c9bd;
+  border-radius: 8px;
+  background: #fff;
+  color: #203a33;
+  width: 100%;
+}
+input:disabled {
+  background: #f1f4f1;
+  color: #8b9a90;
+  cursor: not-allowed;
+}
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid #aa7b2e;
+  outline-offset: 3px;
+}
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 20px;
+}
+.hint {
+  font-size: 12px;
+  color: #6c7c72;
+}
+.client-summary,
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 16px;
+  background: #f6f8f4;
+  border-radius: 10px;
+}
+.client-summary dt,
+.summary dt {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #6c7c72;
+}
+.client-summary dd,
+.summary dd {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #203a33;
+}
+.total-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0 24px;
+  padding: 20px 22px;
+  border-radius: 14px;
+  background: #214c43;
+  color: #fff;
+}
+.total-box > span:first-child {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.total-box .hint {
+  color: #c8ddd2;
+}
+.total-amount,
+.amount {
+  font-size: 34px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
+}
+.summary .amount {
+  font-size: 20px;
+  color: #214c43;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.confirm-actions {
+  align-items: center;
+}
+button {
+  font: inherit;
+  padding: 10px 14px;
+  border: 1px solid #c9d7ce;
+  border-radius: 8px;
+  color: #214c43;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+button:hover:not(:disabled) {
+  background: #eef3ee;
+}
+button.primary {
+  background: #214c43;
+  color: #fff;
+  border-color: #214c43;
+}
+button.primary:hover:not(:disabled) {
+  background: #163d34;
+}
+button.confirm {
+  padding: 16px 30px;
+  font-size: 17px;
+  font-weight: 700;
+  flex: 1;
+  min-width: 220px;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+button:focus-visible {
+  outline: 3px solid #aa7b2e;
+  outline-offset: 3px;
+}
+.notice {
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.error {
+  background: #fff0ec;
+  color: #923b2e;
+}
+.badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e6f1e8;
+  color: #246044;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+.result h2 {
+  margin-bottom: 20px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .panel {
+    padding: 18px;
+  }
+  .steps {
+    grid-template-columns: 1fr;
+  }
+  .total-amount {
+    font-size: 28px;
+  }
+}
+@media (max-width: 460px) {
+  h1 {
+    font-size: 30px;
+  }
+  .wizard {
+    padding-top: 28px;
+  }
+}
+
+/* Selección de vehículos a pagar */
+.vehiculos-fieldset {
+  margin: 0 0 20px;
+}
+.vehiculos-fieldset legend {
+  font-size: 13px;
+  font-weight: 700;
+  color: #3a4d43;
+  padding: 0;
+  margin-bottom: 6px;
+}
+.vehiculo-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vehiculo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #dce2dc;
+  border-radius: 10px;
+  background: #fff;
+}
+.vehiculo-item.off {
+  background: #f4f6f3;
+  opacity: 0.75;
+}
+.vehiculo-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  cursor: pointer;
+  flex-wrap: wrap;
+}
+.vehiculo-check input {
+  width: auto;
+  margin: 0;
+}
+.vehiculo-placa {
+  font-weight: 700;
+  font-family: Consolas, 'Courier New', monospace;
+  color: #203a33;
+}
+.vehiculo-tipo {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef3ee;
+  color: #365c4e;
+}
+.vehiculo-tarifa {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #214c43;
+  white-space: nowrap;
+}
+.seleccion-error {
+  margin-top: 12px;
+}
+
+/* Calculadora de cambio (efectivo) */
+.cash-box {
+  margin: 0 0 20px;
+  padding: 18px 20px;
+  border: 1px solid #dce2dc;
+  border-radius: 12px;
+  background: #f7f9f6;
+}
+.cash-box .field {
+  max-width: 320px;
+  margin-bottom: 12px;
+}
+.change-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.change-line > span:not(.hint):not(.change-error) {
+  font-size: 13px;
+  font-weight: 700;
+  color: #3a4d43;
+}
+.change-amount {
+  font-size: 26px;
+  font-weight: 700;
+  color: #214c43;
+  font-variant-numeric: tabular-nums;
+}
+.change-error {
+  color: #923b2e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Recibo / ticket imprimible */
+.ticket {
+  max-width: 420px;
+  margin: 0 auto 22px;
+  padding: 22px;
+  border: 2px dashed #9fb3a6;
+  border-radius: 12px;
+  color: #203a33;
+  background: #fff;
+}
+.ticket-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #dce2dc;
+}
+.ticket-logo {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #214c43;
+  color: #fff;
+  font-weight: 700;
+  flex: none;
+}
+.ticket-brand {
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+.ticket-subtitle {
+  margin: 3px 0 0;
+  font-size: 12px;
+}
+.ticket-code {
+  margin: 16px 0;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+.ticket-datos,
+.ticket-cambio {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  margin: 0 0 16px;
+}
+.ticket-datos dt,
+.ticket-cambio dt {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #526c60;
+  font-weight: 700;
+}
+.ticket-datos dd,
+.ticket-cambio dd {
+  margin: 3px 0 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.ticket-breakdown {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+.ticket-breakdown th,
+.ticket-breakdown td {
+  padding: 7px 6px;
+  border-bottom: 1px solid #e6ebe5;
+}
+.ticket-breakdown thead th {
+  color: #5d7063;
+  background: #f6f8f4;
+}
+.amount-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ticket-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #dce2dc;
+}
+.ticket-total strong {
+  font-size: 24px;
+  color: #214c43;
+  font-variant-numeric: tabular-nums;
+}
+.ticket-cambio {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #c9d7ce;
+}
+.ticket-foot {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: #6c7c72;
+}
+
+/* Al imprimir, el recibo se muestra limpio sin bordes ni cromo de la app
+   (la visibilidad global se controla en src/styles.css con .recibo-print). */
+@media print {
+  .ticket {
+    max-width: 76mm;
+    width: 76mm;
+    margin: 0;
+    border: 0;
+    padding: 0;
+    color: #000;
+    background: #fff;
+    box-shadow: none;
+    min-height: auto;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

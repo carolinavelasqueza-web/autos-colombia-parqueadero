@@ -1,7 +1,9 @@
 """Cálculo del reporte de ocupación con capacidad acotada por familia."""
 
+from calendar import monthrange
 from collections.abc import Iterable, Mapping
 from datetime import date, datetime, time, timedelta, timezone
+from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, or_, select
@@ -9,17 +11,20 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.capacidad import LIMITES_POR_FAMILIA
-from app.models import Celda, Estancia, Vehiculo
+from app.models import Celda, Estancia, Pago, Vehiculo
 from app.schemas.reporte import (
     DiaOcupacion,
     OcupacionFamilia,
+    RecaudoPorMetodo,
     ReporteOcupacionRespuesta,
+    ReporteRecaudoRespuesta,
 )
 from app.tipos import FAMILIA_AUTOS, FAMILIA_MOTOS, familia_tipo
 
 BOGOTA = ZoneInfo("America/Bogota")
 DIAS_POR_DEFECTO = 7
 DIAS_MAXIMOS = 31
+DIAS_MAXIMOS_RECAUDO = 366
 
 
 class ReporteError(Exception):
@@ -212,3 +217,74 @@ def generar_reporte(
         raise ReporteError(
             503, "No se pudo completar la consulta del reporte."
         ) from None
+
+
+def rango_recaudo(
+    desde: date | None, hasta: date | None, hoy: date | None = None
+) -> tuple[date, date]:
+    """Valida y completa el rango del recaudo usando días de Bogotá."""
+    referencia = hoy or datetime.now(BOGOTA).date()
+    if desde is None and hasta is None:
+        inicio = referencia.replace(day=1)
+        fin = date(
+            referencia.year,
+            referencia.month,
+            monthrange(referencia.year, referencia.month)[1],
+        )
+    elif desde is None:
+        inicio = hasta.replace(day=1)
+        fin = hasta
+    elif hasta is None:
+        inicio = desde
+        fin = date(desde.year, desde.month, monthrange(desde.year, desde.month)[1])
+    else:
+        inicio, fin = desde, hasta
+
+    if inicio > fin:
+        raise ReporteError(422, "La fecha inicial no puede ser posterior a la final.")
+    if (fin - inicio).days + 1 > DIAS_MAXIMOS_RECAUDO:
+        raise ReporteError(
+            422,
+            f"El rango del reporte no puede superar {DIAS_MAXIMOS_RECAUDO} días.",
+        )
+    return inicio, fin
+
+
+def obtener_reporte_recaudo(
+    session: Session, desde: date | None = None, hasta: date | None = None
+) -> ReporteRecaudoRespuesta:
+    """Suma los pagos VIGENTE del rango agrupados por método."""
+    inicio, fin = rango_recaudo(desde, hasta)
+    inicio_utc, fin_utc = limites_utc(inicio, fin)
+
+    try:
+        filas = session.execute(
+            select(Pago.metodo, func.count(Pago.id), func.sum(Pago.monto))
+            .where(
+                Pago.estado == "VIGENTE",
+                Pago.fecha >= inicio_utc,
+                Pago.fecha < fin_utc,
+            )
+            .group_by(Pago.metodo)
+            .order_by(Pago.metodo)
+        ).all()
+    except SQLAlchemyError:
+        raise ReporteError(
+            503, "No se pudo completar la consulta del reporte."
+        ) from None
+
+    por_metodo = [
+        RecaudoPorMetodo(
+            metodo=metodo,
+            pagos=int(cantidad),
+            total=Decimal(total or 0),
+        )
+        for metodo, cantidad, total in filas
+    ]
+    return ReporteRecaudoRespuesta(
+        desde=inicio,
+        hasta=fin,
+        pagos=sum(item.pagos for item in por_metodo),
+        total=sum((item.total for item in por_metodo), Decimal("0")),
+        por_metodo=por_metodo,
+    )

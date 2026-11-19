@@ -51,11 +51,20 @@ describe('authInterceptor', () => {
     req.flush({});
   });
 
-  it('adjunta el token a clientes, puertas y reportes', () => {
+  it('adjunta el token a clientes, puertas, reportes, pagos y tarifas', () => {
     sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sesion));
     TestBed.inject(AuthService);
 
-    for (const url of ['/clientes', '/puertas', '/reportes/ocupacion']) {
+    for (const url of [
+      '/clientes',
+      '/puertas',
+      '/reportes/ocupacion',
+      '/pagos',
+      '/pagos?offset=0&limit=20',
+      '/pagos/1/recibo',
+      '/tarifas',
+      '/tarifas/AUTOMOVIL',
+    ]) {
       client.get(url).subscribe();
       const req = http.expectOne(url);
       expect(req.request.headers.get('Authorization')).toBe('Bearer token-1');

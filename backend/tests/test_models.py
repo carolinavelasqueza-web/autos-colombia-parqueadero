@@ -82,11 +82,17 @@ def test_audit_table_structure():
 
 
 def test_required_columns_and_identity():
-    for name in ("celda", "operador", "cliente"):
+    for name in ("celda", "operador"):
         table = Base.metadata.tables[name]
         assert all(not column.nullable for column in table.columns)
         assert isinstance(table.c.id.type, sa.BigInteger)
         assert table.c.id.identity.always is True
+    cliente = Base.metadata.tables["cliente"]
+    assert {column.name for column in cliente.columns if column.nullable} == {
+        "fecha_vencimiento"
+    }
+    assert isinstance(cliente.c.id.type, sa.BigInteger)
+    assert cliente.c.id.identity.always is True
     vehicle = Base.metadata.tables["vehiculo"]
     assert {column.name for column in vehicle.columns if column.nullable} == {"cliente_id"}
     assert isinstance(vehicle.c.id.type, sa.BigInteger)

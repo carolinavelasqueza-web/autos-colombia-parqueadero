@@ -37,6 +37,37 @@ describe('Gestión de clientes', () => {
     expect(text).toContain('Activo');
   });
 
+  it('marca con una alerta amarilla a los clientes con mensualidad por vencer', () => {
+    // Fecha de vencimiento dentro de 3 días respecto a hoy (Bogotá).
+    const hoyBogota = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Bogota',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    const vence = new Date(`${hoyBogota}T00:00:00Z`);
+    vence.setUTCDate(vence.getUTCDate() + 3);
+    const fechaVencimiento = vence.toISOString().slice(0, 10);
+
+    const porVencer = { ...cliente, id: 2, documento: '999', fecha_vencimiento: fechaVencimiento };
+    const alDia = { ...cliente, id: 3, documento: '888', fecha_vencimiento: null };
+    const c = fixture.componentInstance;
+    c.load();
+    http.expectOne('/clientes?offset=0&limit=10').flush({
+      items: [porVencer, alDia],
+      total: 2,
+      offset: 0,
+      limit: 10,
+    });
+    fixture.detectChanges();
+
+    expect(c.porVencer(porVencer)).toBe(true);
+    expect(c.porVencer(alDia)).toBe(false);
+    const tags = (fixture.nativeElement as HTMLElement).querySelectorAll('.warning-tag');
+    expect(tags).toHaveLength(1);
+    expect(tags[0].textContent).toContain('Vence');
+  });
+
   it('crea desde el HTML, recorta textos y conserva el correo', () => {
     const c = fixture.componentInstance;
     c.newCliente();
@@ -145,7 +176,7 @@ describe('Gestión de clientes', () => {
     expect(c.success()).toContain('actualizado');
   });
 
-  it('desactiva con DELETE y reactiva con PATCH sin borrar el registro', () => {
+  it('desactiva con PATCH y reactiva con PATCH sin borrar el registro', () => {
     const c = fixture.componentInstance;
     c.confirmDelete(cliente);
     fixture.detectChanges();
@@ -155,9 +186,9 @@ describe('Gestión de clientes', () => {
     expect(confirmation).toContain('no podrán registrar nuevas entradas');
     c.remove();
     c.remove();
-    http
-      .expectOne({ method: 'DELETE', url: '/clientes/1' })
-      .flush(null, { status: 204, statusText: 'No Content' });
+    const desactivar = http.expectOne({ method: 'PATCH', url: '/clientes/1' });
+    expect(desactivar.request.body).toEqual({ activo: false });
+    desactivar.flush({ ...cliente, activo: false });
     http.expectOne('/clientes?offset=0&limit=10').flush({
       ...page,
       items: [{ ...cliente, activo: false }],
@@ -189,7 +220,9 @@ describe('Gestión de clientes', () => {
     expect(c.actionError()).toContain('ya no existe');
     c.confirmDelete(cliente);
     c.remove();
-    http.expectOne('/clientes/1').flush({}, { status: 404, statusText: 'Not Found' });
+    http
+      .expectOne({ method: 'PATCH', url: '/clientes/1' })
+      .flush({}, { status: 404, statusText: 'Not Found' });
     http.expectOne('/clientes?offset=0&limit=10').flush({ ...page, items: [], total: 0 });
     expect(c.pendingDelete()).toBeNull();
   });

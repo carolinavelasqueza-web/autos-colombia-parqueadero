@@ -1,0 +1,103 @@
+<section class="management" aria-labelledby="tarifas-title">
+  <header class="heading">
+    <div>
+      <span class="eyebrow">ADMINISTRACIÓN DE MENSUALIDADES</span>
+      <h1 id="tarifas-title">Tarifas</h1>
+      <p>Valor mensual vigente por tipo de vehículo.</p>
+    </div>
+    <button type="button" (click)="cargar()" [disabled]="busy()">Actualizar tarifas</button>
+  </header>
+
+  @if (success()) {
+    <p class="notice success" role="status">{{ success() }}</p>
+  }
+  @if (actionError()) {
+    <p class="notice error" role="alert">{{ actionError() }}</p>
+  }
+  @if (listError()) {
+    <p class="notice error" role="alert">{{ listError() }}</p>
+  }
+
+  @if (editing(); as tipo) {
+    <section class="panel" aria-labelledby="form-title">
+      <h2 id="form-title">Editar tarifa de {{ tipo }}</h2>
+      <p class="hint">
+        El valor se expresa en pesos colombianos y debe ser un número entero mayor que cero.
+      </p>
+      <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+        <fieldset [disabled]="saving()">
+          <legend class="sr-only">Nueva tarifa mensual</legend>
+          <div class="field">
+            <label for="valor">Valor mensual (COP)</label>
+            <input
+              id="valor"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              formControlName="valor"
+              required
+              [attr.aria-invalid]="!!campoError()"
+              aria-describedby="valor-error"
+              (input)="onValorInput()"
+            />
+            <span class="field-error" id="valor-error">{{ campoError() }}</span>
+          </div>
+          <div class="actions">
+            <button type="submit" class="primary" [disabled]="saving()">
+              {{ saving() ? 'Guardando…' : 'Guardar tarifa' }}
+            </button>
+            <button type="button" (click)="cancelar()" [disabled]="saving()">Cancelar</button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+  }
+
+  <section class="panel list" aria-label="Tarifas vigentes" [attr.aria-busy]="loading()">
+    <div class="list-heading">
+      <h2>Tarifas vigentes</h2>
+      <span class="count">{{ items().length }} de {{ tipos.length }}</span>
+    </div>
+
+    @if (loading()) {
+      <p class="empty" role="status">Cargando tarifas…</p>
+    } @else {
+      <div class="table-scroll">
+        <table>
+          <caption class="sr-only">Tarifa mensual vigente por tipo de vehículo</caption>
+          <thead>
+            <tr>
+              <th scope="col">Tipo de vehículo</th>
+              <th scope="col">Valor mensual</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (fila of filas(); track fila.tipo) {
+              <tr>
+                <th scope="row">{{ fila.tipo }}</th>
+                <td>
+                  @if (fila.tarifa; as tarifa) {
+                    <span class="amount">$ {{ formatearValor(tarifa.valor) }}</span>
+                  } @else {
+                    <span class="amount missing">Sin tarifa</span>
+                  }
+                </td>
+                <td class="row-actions">
+                  <button
+                    type="button"
+                    (click)="editar(fila.tipo, fila.tarifa)"
+                    [disabled]="busy()"
+                    [attr.aria-label]="'Editar ' + fila.tipo"
+                  >
+                    Editar
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</section>
