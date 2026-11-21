@@ -81,6 +81,68 @@
       </div>
     </section>
   }
+  <section class="panel" aria-labelledby="alertas-title">
+    <div class="list-heading">
+      <h2 id="alertas-title">Por vencer</h2>
+      <button
+        type="button"
+        (click)="toggleAlertas()"
+        [attr.aria-expanded]="alertasVisible()"
+        aria-controls="alertas-contenido"
+      >
+        {{ alertasVisible() ? 'Ocultar' : 'Ver clientes por vencer' }}
+      </button>
+    </div>
+    <p class="hint">
+      Clientes activos con mensualidad vencida o que vence en 5 días o menos (hora de Bogotá).
+    </p>
+    @if (alertasVisible()) {
+      <div id="alertas-contenido">
+        @if (alertasLoading()) {
+          <p class="empty" role="status">Cargando clientes por vencer…</p>
+        } @else if (alertasError()) {
+          <p class="notice error" role="alert">{{ alertasError() }}</p>
+        } @else if (!alertas().length) {
+          <div class="empty">
+            <p>No hay clientes por vencer ni vencidos.</p>
+          </div>
+        } @else {
+          <div class="table-scroll">
+            <table>
+              <caption class="sr-only">
+                Clientes por vencer o vencidos
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Documento</th>
+                  <th scope="col">Nombre</th>
+                  <th scope="col">Vence</th>
+                  <th scope="col">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of alertas(); track item.cliente.id) {
+                  <tr>
+                    <th scope="row">{{ item.cliente.documento }}</th>
+                    <td>{{ item.cliente.nombre }}</td>
+                    <td>{{ vencimientoAlerta(item) }}</td>
+                    <td>
+                      @if (item.estado === 'VENCIDA') {
+                        <span class="type-tag inactive">Vencida</span>
+                      } @else {
+                        <span class="warning-tag">Por vencer</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
   <section class="panel list" aria-label="Listado de clientes" [attr.aria-busy]="loading()">
     <div class="list-heading">
       <h2>

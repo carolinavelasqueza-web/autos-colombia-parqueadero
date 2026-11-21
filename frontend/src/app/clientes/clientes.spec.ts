@@ -248,4 +248,103 @@ describe('Gestión de clientes', () => {
     expect(c.busy()).toBe(false);
     expect(c.showForm()).toBe(true);
   });
+
+  // --- Sección "Por vencer" ---
+
+  const alertasUrl = '/clientes/mensualidad/alertas?offset=0&limit=100';
+
+  function alertaItem(overrides: Record<string, unknown> = {}) {
+    return {
+      cliente: {
+        id: 2,
+        documento: '999',
+        nombre: 'Cliente Alerta',
+        telefono: '001',
+        correo: 'alerta@example.com',
+        activo: true,
+        fecha_vencimiento: '2026-01-05',
+      },
+      estado: 'POR_VENCER',
+      ...overrides,
+    };
+  }
+
+  it('no consulta las alertas hasta abrir la sección "Por vencer"', () => {
+    const c = fixture.componentInstance;
+    // Tras la carga inicial del listado, no debe haber pedido alertas.
+    http.expectNone(alertasUrl);
+    expect(c.alertasVisible()).toBe(false);
+
+    c.toggleAlertas();
+    expect(c.alertasVisible()).toBe(true);
+    http.expectOne(alertasUrl).flush({ items: [], total: 0, offset: 0, limit: 100 });
+  });
+
+  it('lista clientes por vencer y vencidos al abrir la sección', () => {
+    const c = fixture.componentInstance;
+    c.toggleAlertas();
+    http.expectOne(alertasUrl).flush({
+      items: [
+        alertaItem({ estado: 'POR_VENCER' }),
+        alertaItem({
+          cliente: {
+            id: 3,
+            documento: '888',
+            nombre: 'Cliente Vencido',
+            telefono: '002',
+            correo: 'vencido@example.com',
+            activo: true,
+            fecha_vencimiento: '2025-12-01',
+          },
+          estado: 'VENCIDA',
+        }),
+      ],
+      total: 2,
+      offset: 0,
+      limit: 100,
+    });
+    fixture.detectChanges();
+
+    const seccion = (fixture.nativeElement as HTMLElement).querySelector(
+      '[aria-labelledby="alertas-title"]',
+    )!;
+    const filas = [...seccion.querySelectorAll('tbody tr')].map((fila) => fila.textContent ?? '');
+    expect(filas).toHaveLength(2);
+    expect(filas[0]).toContain('999');
+    expect(filas[0]).toContain('Por vencer');
+    expect(filas[1]).toContain('Cliente Vencido');
+    expect(filas[1]).toContain('Vencida');
+    expect(c.alertas()).toHaveLength(2);
+  });
+
+  it('muestra "No hay clientes por vencer ni vencidos" cuando la lista viene vacía', () => {
+    const c = fixture.componentInstance;
+    c.toggleAlertas();
+    http.expectOne(alertasUrl).flush({ items: [], total: 0, offset: 0, limit: 100 });
+    fixture.detectChanges();
+
+    const seccion = (fixture.nativeElement as HTMLElement).querySelector(
+      '[aria-labelledby="alertas-title"]',
+    )!;
+    expect(seccion.textContent).toContain('No hay clientes por vencer ni vencidos');
+    expect(seccion.querySelectorAll('tbody tr')).toHaveLength(0);
+  });
+
+  it('muestra el mensaje del backend cuando falla la consulta de alertas', () => {
+    const c = fixture.componentInstance;
+    c.toggleAlertas();
+    http
+      .expectOne(alertasUrl)
+      .flush(
+        { detail: 'No se pudo completar la operación con la base de datos.' },
+        { status: 503, statusText: 'Service Unavailable' },
+      );
+    fixture.detectChanges();
+
+    expect(c.alertasError()).toContain('No se pudo conectar');
+    const seccion = (fixture.nativeElement as HTMLElement).querySelector(
+      '[aria-labelledby="alertas-title"]',
+    )!;
+    expect(seccion.querySelector('[role="alert"]')).not.toBeNull();
+  });
 });

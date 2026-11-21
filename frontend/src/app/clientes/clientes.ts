@@ -4,9 +4,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { Cliente, ClienteActualizar, ClienteCrear } from '../models/cliente';
 import { estaPorVencer, formatearVencimiento } from '../models/mensualidad';
+import { Mensualidad } from '../models/pago';
 import { ErrorApi } from '../models/vehiculo';
 import { AuthService } from '../services/auth.service';
 import { ClientesService } from '../services/clientes.service';
+import { PagosService } from '../services/pagos.service';
 
 const nonBlank: ValidatorFn = (control) =>
   typeof control.value === 'string' && control.value.trim() ? null : { required: true };
@@ -28,6 +30,7 @@ type Field = 'documento' | 'nombre' | 'telefono' | 'correo' | 'activo';
 export class Clientes {
   readonly auth = inject(AuthService);
   private readonly api = inject(ClientesService);
+  private readonly pagosApi = inject(PagosService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
   readonly fields = [
@@ -59,6 +62,15 @@ export class Clientes {
   readonly success = signal('');
   readonly page = computed(() => Math.floor(this.offset() / this.limit) + 1);
   readonly pages = computed(() => Math.ceil(this.total() / this.limit) || 1);
+
+  // Sección "Por vencer": clientes activos con mensualidad vencida o que vence
+  // en 5 días o menos. Se consulta al endpoint de alertas solo al abrirla.
+  private alertasVersion = 0;
+  readonly alertasLimit = 100;
+  readonly alertasVisible = signal(false);
+  readonly alertas = signal<Mensualidad[]>([]);
+  readonly alertasLoading = signal(false);
+  readonly alertasError = signal('');
 
   constructor() {
     this.load();
@@ -207,6 +219,44 @@ export class Clientes {
         }
       },
     });
+  }
+
+  /** Abre o cierra la sección "Por vencer"; consulta las alertas al abrirla. */
+  toggleAlertas(): void {
+    if (this.alertasVisible()) {
+      this.alertasVisible.set(false);
+      return;
+    }
+    this.alertasVisible.set(true);
+    this.cargarAlertas();
+  }
+
+  cargarAlertas(): void {
+    if (this.alertasLoading()) return;
+    const version = ++this.alertasVersion;
+    this.alertasLoading.set(true);
+    this.alertasError.set('');
+    this.pagosApi
+      .alertas(0, this.alertasLimit)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          if (version !== this.alertasVersion) return;
+          this.alertasLoading.set(false);
+          this.alertas.set(data.items);
+        },
+        error: (error: HttpErrorResponse) => {
+          if (version !== this.alertasVersion) return;
+          this.alertasLoading.set(false);
+          this.alertas.set([]);
+          this.alertasError.set(this.errorMessage(error));
+        },
+      });
+  }
+
+  /** Fecha de vencimiento del item de alerta, formateada en hora de Bogotá. */
+  vencimientoAlerta(item: Mensualidad): string {
+    return formatearVencimiento(item.cliente.fecha_vencimiento);
   }
 
   /** true cuando el cliente está activo y su mensualidad vence en 5 días o menos. */
